@@ -77,10 +77,10 @@ int main(int argc, char * argv[]){
     // Run time trials for dynamic
     int sum_x_dynamic = 0;
     double elapsed_time_dynamic = omp_get_wtime();
-    elapsed_time_dynamic = omp_get_wtime() - elapsed_time_dynamic;
     for(int i = 1; i < trials; ++i){
         back_solve_dynamic(A, b, x, n);
     }
+    elapsed_time_dynamic = omp_get_wtime() - elapsed_time_dynamic;
     for(int i = 0; i < n; ++i){
         sum_x_dynamic += x[i];
     }
