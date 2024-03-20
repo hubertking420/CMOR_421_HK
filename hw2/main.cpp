@@ -1,4 +1,4 @@
-#include "include/functions.h"
+#include "functions.h"
 #include <iostream>
 #include <omp.h>
 
@@ -18,7 +18,7 @@ int main(int argc, char * argv[]){
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
             if (i <= j) { // Upper triangular region
-                A[i * n + j] = 1 + (j - i);
+                A[i * n + j] = 1;
             } else { // Lower triangular region
                 A[i * n + j] = 0;
             }
@@ -26,6 +26,7 @@ int main(int argc, char * argv[]){
     }
     for (int i = 0; i < n; ++i) {
         b[i] = n - i;
+        x[i] = 0;
     }
 
     // // Display linear system
@@ -56,7 +57,7 @@ int main(int argc, char * argv[]){
     for(int i = 0; i < n; ++i){
         x[i] = 0;
     }
-
+    
     // Run time trials for static
     int sum_x_static = 0;
     double elapsed_time_static = omp_get_wtime();
@@ -85,12 +86,12 @@ int main(int argc, char * argv[]){
     }
 
     // Display results
-    cout << "Serial sum_x: " << sum_x_serial/trials << endl;
-    cout << "Average Elapsed Time:" << elapsed_time_serial/trials << " seconds." << endl;
-    cout << "Static Scheduling sum_x: " << sum_x_static/trials << endl;
-    cout << "Average Elapsed Time:" << elapsed_time_static/trials << " seconds." << endl;
-    cout << "Dynamic Scheduling sum_x: " << sum_x_dynamic/trials << endl;
-    cout << "Average Elapsed Time:" << elapsed_time_dynamic/trials << " seconds." << endl;
+    cout << "Serial sum_x: " << sum_x_serial << endl;
+    cout << "Average Elapsed Time:" << elapsed_time_serial << " seconds." << endl;
+    cout << "Static Scheduling sum_x: " << sum_x_static << endl;
+    cout << "Average Elapsed Time:" << elapsed_time_static << " seconds." << endl;
+    cout << "Dynamic Scheduling sum_x: " << sum_x_dynamic << endl;
+    cout << "Average Elapsed Time:" << elapsed_time_dynamic << " seconds." << endl;
     
     // Clean up memory
     delete[] A;
