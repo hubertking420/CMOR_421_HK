@@ -16,15 +16,14 @@ int main(int argc, char * argv[]){
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
             if (i <= j) { // Upper triangular region
-                A[i * n + j] = 1;
+                A[i * n + j] = 1.0;
             } else { // Lower triangular region
-                A[i * n + j] = 0;
+                A[i * n + j] = 0.0;
             }
         }
     }
     for (int i = 0; i < n; ++i) {
         b[i] = n - i;
-        x[i] = 0;
     }
 
     // Display linear system
@@ -40,16 +39,14 @@ int main(int argc, char * argv[]){
         std::cout << b[i] << std::endl;
     }
 
-    // Run time trials for serial
+    // // Back Solve
     int sum_x_serial = 0;
-    for(int i = 0; i < trials; ++i){
-        x[n-1] = b[n-1];
-        for (int i = n-2; i >= 0; --i) {
-            double sum = 0.0; 
-            for (int j = i+1; j < n; ++j) { 
-                sum += A[i*n+j] * x[j];
-            }
-            x[i] = b[i] - sum; 
+    for(int i = 0; i < n; ++i){
+        x[i] = b[i];
+    }
+    for (int j = n - 1; j >= 0; --j) {
+        for (int i = 0; i < j; ++i) {
+            x[i] -= A[i * n + j] * x[j];
         }
     }
 
