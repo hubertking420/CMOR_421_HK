@@ -1,5 +1,72 @@
 #include "functions.h"
 #include <omp.h>
+
+void matmul_blocked_serial(double *C, double *A, double *B, int n){
+    for (int i = 0; i < n; i += BLOCK_SIZE){
+        for (int j = 0; j < n; j += BLOCK_SIZE){
+            for (int k = 0; k < n; k += BLOCK_SIZE){
+
+                // small matmul
+                for (int ii = i; ii < i + BLOCK_SIZE; ii++){
+                    for (int jj = j; jj < j + BLOCK_SIZE; jj++){
+                        double Cij = C[jj + ii * n];
+                        for (int kk = k; kk < k + BLOCK_SIZE; kk++){
+                            Cij += A[kk + ii * n] * B[jj + kk * n]; // Aik * Bkj
+                        }
+                        C[jj + ii * n] = Cij;
+                    }
+                }
+
+            }
+        }
+    }
+}
+
+void matmul_blocked_parallel(double *C, double *A, double *B, int n){
+    #pragma omp parallel for
+    for (int i = 0; i < n; i += BLOCK_SIZE){
+        #pragma omp parallel for
+        for (int j = 0; j < n; j += BLOCK_SIZE){
+            for (int k = 0; k < n; k += BLOCK_SIZE){
+
+                // small matmul
+                for (int ii = i; ii < i + BLOCK_SIZE; ii++){
+                    for (int jj = j; jj < j + BLOCK_SIZE; jj++){
+                        double Cij = C[jj + ii * n];
+                        for (int kk = k; kk < k + BLOCK_SIZE; kk++){
+                            Cij += A[kk + ii * n] * B[jj + kk * n]; // Aik * Bkj
+                        }
+                        C[jj + ii * n] = Cij;
+                    }
+                }
+
+            }
+        }
+    }
+}
+
+void matmul_blocked_parallel_collapse(double *C, double *A, double *B, int n){
+    #pragma omp parallel for collapse(2)
+    for (int i = 0; i < n; i += BLOCK_SIZE){
+        for (int j = 0; j < n; j += BLOCK_SIZE){
+            for (int k = 0; k < n; k += BLOCK_SIZE){
+
+                // small matmul
+                for (int ii = i; ii < i + BLOCK_SIZE; ii++){
+                    for (int jj = j; jj < j + BLOCK_SIZE; jj++){
+                        double Cij = C[jj + ii * n];
+                        for (int kk = k; kk < k + BLOCK_SIZE; kk++){
+                            Cij += A[kk + ii * n] * B[jj + kk * n]; // Aik * Bkj
+                        }
+                        C[jj + ii * n] = Cij;
+                    }
+                }
+
+            }
+        }
+    }
+}
+
 void back_solve_serial(double *A, double *b, double *x, int n){
     for(int i = 0; i < n; ++i){
         x[i] = b[i];

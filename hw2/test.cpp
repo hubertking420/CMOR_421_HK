@@ -1,68 +1,58 @@
 #include <iostream>
 
 using namespace std;
-
+#define BLOCK_SIZE 16
 int main(int argc, char * argv[]){
     int n = atoi(argv[1]);
     int trials = 5;
-    cout << "Matrix size n = " << n << endl;
+    
+    // Part 1
+    cout << "Matrix size n = " << n << ", block size = " << BLOCK_SIZE << endl;
 
-    // Allocate memory for A, x, and b
-    double* A = new double[n * n];
-    double* x = new double[n];
-    double* b = new double[n];
+    double * A = new double[n * n];
+    double * B = new double[n * n];
+    double * C = new double[n * n];
 
-    // Initialize linear system
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            if (i <= j) { // Upper triangular region
-                A[i * n + j] = 1.0;
-            } else { // Lower triangular region
-                A[i * n + j] = 0.0;
+    // Initialize multiplication I x I = C
+    for (int i = 0; i < n; ++i){
+        A[i + i * n] = 1.0;
+        B[i + i * n] = 1.0;
+    }
+    for (int i = 0; i < n * n; ++i){
+        C[i] = 0.0;
+    }
+
+    for (int i = 0; i < n; i += BLOCK_SIZE){
+        for (int j = 0; j < n; j += BLOCK_SIZE){
+            for (int k = 0; k < n; k += BLOCK_SIZE){
+
+                // small matmul
+                for (int ii = i; ii < i + BLOCK_SIZE; ii++){
+                    for (int jj = j; jj < j + BLOCK_SIZE; jj++){
+                        double Cij = C[jj + ii * n];
+                        for (int kk = k; kk < k + BLOCK_SIZE; kk++){
+                            Cij += A[kk + ii * n] * B[jj + kk * n]; // Aik * Bkj
+                        }
+                        C[jj + ii * n] = Cij;
+                    }
+                }
             }
         }
     }
-    for (int i = 0; i < n; ++i) {
-        b[i] = n - i;
+
+    double sum_C_serial = 0.0;
+    for (int i = 0; i < n * n; ++i){
+        sum_C_serial += C[i];
     }
 
-    // Display linear system
-    std::cout << "Matrix A:" << std::endl;
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            std::cout << A[i * n + j] << " ";
-        }
-        std::cout << std::endl;
-    }
-    std::cout << "\nVector b:" << std::endl;
-    for (int i = 0; i < n; ++i) {
-        std::cout << b[i] << std::endl;
+    // reset C
+    for (int i = 0; i < n * n; ++i){
+        C[i] = 0.0;
     }
 
-    // // Back Solve
-    int sum_x_serial = 0;
-    for(int i = 0; i < n; ++i){
-        x[i] = b[i];
-    }
-    for (int j = n - 1; j >= 0; --j) {
-        for (int i = 0; i < j; ++i) {
-            x[i] -= A[i * n + j] * x[j];
-        }
-    }
+    // 
 
-    std::cout << "\nVector x:" << std::endl;
-    for (int i = 0; i < n; ++i) {
-        std::cout << x[i] << std::endl;
-    }
-
-    for(int i = 0; i < n; ++i){
-        sum_x_serial += x[i];
-    }
-
-    cout << "Serial sum_x: " << sum_x_serial << endl;
-
-    // Clean up memory
     delete[] A;
-    delete[] x;
-    delete[] b;
+    delete[] B;
+    delete[] C;  
 }
