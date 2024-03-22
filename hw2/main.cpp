@@ -61,7 +61,7 @@ int main(int argc, char * argv[]){
     // Run time trials for static
     int sum_x_static = 0;
     double elapsed_time_static = omp_get_wtime();
-    for(int i = 1; i < trials; ++i){
+    for(int i = 0; i < trials; ++i){
         back_solve_static(A, b, x, n);
     }
     elapsed_time_static = omp_get_wtime() - elapsed_time_static;
@@ -77,7 +77,7 @@ int main(int argc, char * argv[]){
     // Run time trials for dynamic
     int sum_x_dynamic = 0;
     double elapsed_time_dynamic = omp_get_wtime();
-    for(int i = 1; i < trials; ++i){
+    for(int i = 0; i < trials; ++i){
         back_solve_dynamic(A, b, x, n);
     }
     elapsed_time_dynamic = omp_get_wtime() - elapsed_time_dynamic;
@@ -87,11 +87,11 @@ int main(int argc, char * argv[]){
 
     // Display results
     cout << "Serial sum_x: " << sum_x_serial << endl;
-    cout << "Average Elapsed Time:" << elapsed_time_serial << " seconds." << endl;
+    cout << "Elapsed Time:" << elapsed_time_serial << " seconds." << endl;
     cout << "Static Scheduling sum_x: " << sum_x_static << endl;
-    cout << "Average Elapsed Time:" << elapsed_time_static << " seconds." << endl;
+    cout << "Elapsed Time:" << elapsed_time_static << " seconds." << endl;
     cout << "Dynamic Scheduling sum_x: " << sum_x_dynamic << endl;
-    cout << "Average Elapsed Time:" << elapsed_time_dynamic << " seconds." << endl;
+    cout << "Elapsed Time:" << elapsed_time_dynamic << " seconds." << endl;
     
     // Clean up memory
     delete[] A;
