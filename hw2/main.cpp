@@ -11,62 +11,62 @@ int main(int argc, char * argv[]){
     // Part 1
     cout << "Matrix size n = " << n << ", block size = " << BLOCK_SIZE << endl;
 
-    double * A = new double[n * n];
-    double * B = new double[n * n];
-    double * C = new double[n * n];
+    double * A_1 = new double[n * n];
+    double * B_1 = new double[n * n];
+    double * C_1 = new double[n * n];
 
     // Initialize multiplication I x I = C
     for (int i = 0; i < n; ++i){
-        A[i + i * n] = 1.0;
-        B[i + i * n] = 1.0;
+        A_1[i + i * n] = 1.0;
+        B_1[i + i * n] = 1.0;
     }
     for (int i = 0; i < n * n; ++i){
-        C[i] = 0.0;
+        C_1[i] = 0.0;
     }
 
     // Measure serial blocked performance
     double elapsed_time_serial_matmul = omp_get_wtime();
     for (int i = 0; i < trials; ++i){
-        matmul_blocked_serial(C, A, B, n);
+        matmul_blocked_serial(C_1, A_1, B_1, n);
     }
     elapsed_time_serial_matmul = omp_get_wtime() - elapsed_time_serial_matmul;
     double sum_C_serial = 0.0;
     for (int i = 0; i < n * n; ++i){
-        sum_C_serial += C[i];
+        sum_C_serial += C_1[i];
     }
 
 
     // reset C
     for (int i = 0; i < n * n; ++i){
-        C[i] = 0.0;
+        C_1[i] = 0.0;
     }
 
     // Measure parallel blocked performance 
     double elapsed_time_parallel_matmul = omp_get_wtime();
     for (int i = 0; i < trials; ++i){
-        matmul_blocked_parallel(C, A, B, n);
+        matmul_blocked_parallel(C_1, A_1, B_1, n);
     }
     elapsed_time_parallel_matmul = omp_get_wtime() - elapsed_time_parallel_matmul;
     double sum_C_parallel = 0.0;
     for (int i = 0; i < n * n; ++i){
-        sum_C_parallel += C[i];
+        sum_C_parallel += C_1[i];
     }
 
 
     // reset C
     for (int i = 0; i < n * n; ++i){
-        C[i] = 0.0;
+        C_1[i] = 0.0;
     }
 
     // Measure parallel blocked performance 
     double elapsed_time_parallel_collapse = omp_get_wtime();
     for (int i = 0; i < trials; ++i){
-        matmul_blocked_parallel_collapse(C, A, B, n);
+        matmul_blocked_parallel_collapse(C_1, A_1, B_1, n);
     }
     elapsed_time_parallel_collapse = omp_get_wtime() -elapsed_time_parallel_collapse;
     double sum_C_collapse = 0.0;
     for (int i = 0; i < n * n; ++i){
-        sum_C_collapse += C[i];
+        sum_C_collapse += C_1[i];
     }
 
 
@@ -77,41 +77,37 @@ int main(int argc, char * argv[]){
     cout << "Parallel elapsed time = " << elapsed_time_parallel_matmul << endl;
     cout << "Parallel collapse elapsed time= " << elapsed_time_parallel_collapse << endl;
 
-    delete[] A;
-    delete[] B;
-    delete[] C;  
-
     // Part 2
     // Allocate memory for A, x, and b
     cout << "Matrix size n = " << n << endl;
-    double* A = new double[n * n];
-    double* x = new double[n];
-    double* b = new double[n];
+    double* A_2 = new double[n * n];
+    double* x_2 = new double[n];
+    double* b_2 = new double[n];
 
     // Initialize linear system
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
             if (i <= j) { // Upper triangular region
-                A[i * n + j] = 1;
+                A_2[i * n + j] = 1;
             } else { // Lower triangular region
-                A[i * n + j] = 0;
+                A_2[i * n + j] = 0;
             }
         }
     }
     for (int i = 0; i < n; ++i) {
-        b[i] = n - i;
-        x[i] = 0;
+        b_2[i] = n - i;
+        x_2[i] = 0;
     }
 
     // Run time trials for serial
     int sum_x_serial = 0;
     double elapsed_time_serial = omp_get_wtime();
     for(int i = 0; i < trials; ++i){
-        back_solve_serial(A, b, x, n);
+        back_solve_serial(A_2, b_2, x_2, n);
     }
     elapsed_time_serial = omp_get_wtime() - elapsed_time_serial;
     for(int i = 0; i < n; ++i){
-        sum_x_serial += x[i];
+        sum_x_serial += x_2[i];
     }
 
     
@@ -119,22 +115,23 @@ int main(int argc, char * argv[]){
     int sum_x_static = 0;
     double elapsed_time_static = omp_get_wtime();
     for(int i = 0; i < trials; ++i){
-        back_solve_static(A, b, x, n);
+        back_solve_static(A_2, b_2, x_2, n);
+
     }
     elapsed_time_static = omp_get_wtime() - elapsed_time_static;
     for(int i = 0; i < n; ++i){
-        sum_x_static += x[i];
+        sum_x_static += x_2[i];
     }
 
     // Run time trials for dynamic
     int sum_x_dynamic = 0;
     double elapsed_time_dynamic = omp_get_wtime();
     for(int i = 0; i < trials; ++i){
-        back_solve_dynamic(A, b, x, n);
+        back_solve_dynamic(A_2, b_2, x_2, n);
     }
     elapsed_time_dynamic = omp_get_wtime() - elapsed_time_dynamic;
     for(int i = 0; i < n; ++i){
-        sum_x_dynamic += x[i];
+        sum_x_dynamic += x_2[i];
     }
 
     // Display results
@@ -145,8 +142,11 @@ int main(int argc, char * argv[]){
     cout << "Static elapsed Time = " << elapsed_time_static << " seconds." << endl;
     cout << "Dynamic elapsed Time = " << elapsed_time_dynamic << " seconds." << endl;
     
-    // Clean up memory
-    delete[] A;
-    delete[] x;
-    delete[] b;
+    // Clean up memory 
+    delete[] A_1;
+    delete[] B_1;
+    delete[] C_1;  
+    delete[] A_2;
+    delete[] x_2;
+    delete[] b_2;
 }
