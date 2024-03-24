@@ -69,7 +69,7 @@ int main(int argc, char * argv[]){
         sum_C_collapse += C_1[i];
     }
 
-
+    cout << "Blocked Matrix-Matrix Multiplication Algorithm:" << endl;
     cout << "Serial sum_C = " << sum_C_serial/trials << endl;
     cout << "Parallel sum_C = " << sum_C_parallel/trials << endl;
     cout << "Parallel collapse sum_C = " << sum_C_collapse/trials << endl;
@@ -79,7 +79,6 @@ int main(int argc, char * argv[]){
 
     // Part 2
     // Allocate memory for A, x, and b
-    cout << "Matrix size n = " << n << endl;
     double* A_2 = new double[n * n];
     double* x_2 = new double[n];
     double* b_2 = new double[n];
@@ -135,6 +134,7 @@ int main(int argc, char * argv[]){
     }
 
     // Display results
+    cout << "Back-Solve Algorithm:" << endl; 
     cout << "Serial sum_x = " << sum_x_serial << endl;
     cout << "Static Scheduling sum_x = " << sum_x_static << endl;
     cout << "Dynamic Scheduling sum_x = " << sum_x_dynamic << endl;
