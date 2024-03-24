@@ -81,72 +81,72 @@ int main(int argc, char * argv[]){
     delete[] B;
     delete[] C;  
 
-    // // Part 2
-    // // Allocate memory for A, x, and b
-    // cout << "Matrix size n = " << n << endl;
-    // double* A = new double[n * n];
-    // double* x = new double[n];
-    // double* b = new double[n];
+    // Part 2
+    // Allocate memory for A, x, and b
+    cout << "Matrix size n = " << n << endl;
+    double* A = new double[n * n];
+    double* x = new double[n];
+    double* b = new double[n];
 
-    // // Initialize linear system
-    // for (int i = 0; i < n; ++i) {
-    //     for (int j = 0; j < n; ++j) {
-    //         if (i <= j) { // Upper triangular region
-    //             A[i * n + j] = 1;
-    //         } else { // Lower triangular region
-    //             A[i * n + j] = 0;
-    //         }
-    //     }
-    // }
-    // for (int i = 0; i < n; ++i) {
-    //     b[i] = n - i;
-    //     x[i] = 0;
-    // }
+    // Initialize linear system
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            if (i <= j) { // Upper triangular region
+                A[i * n + j] = 1;
+            } else { // Lower triangular region
+                A[i * n + j] = 0;
+            }
+        }
+    }
+    for (int i = 0; i < n; ++i) {
+        b[i] = n - i;
+        x[i] = 0;
+    }
 
-    // // Run time trials for serial
-    // int sum_x_serial = 0;
-    // double elapsed_time_serial = omp_get_wtime();
-    // for(int i = 0; i < trials; ++i){
-    //     back_solve_serial(A, b, x, n);
-    // }
-    // elapsed_time_serial = omp_get_wtime() - elapsed_time_serial;
-    // for(int i = 0; i < n; ++i){
-    //     sum_x_serial += x[i];
-    // }
+    // Run time trials for serial
+    int sum_x_serial = 0;
+    double elapsed_time_serial = omp_get_wtime();
+    for(int i = 0; i < trials; ++i){
+        back_solve_serial(A, b, x, n);
+    }
+    elapsed_time_serial = omp_get_wtime() - elapsed_time_serial;
+    for(int i = 0; i < n; ++i){
+        sum_x_serial += x[i];
+    }
 
     
-    // // Run time trials for static
-    // int sum_x_static = 0;
-    // double elapsed_time_static = omp_get_wtime();
-    // for(int i = 0; i < trials; ++i){
-    //     back_solve_static(A, b, x, n);
-    // }
-    // elapsed_time_static = omp_get_wtime() - elapsed_time_static;
-    // for(int i = 0; i < n; ++i){
-    //     sum_x_static += x[i];
-    // }
+    // Run time trials for static
+    int sum_x_static = 0;
+    double elapsed_time_static = omp_get_wtime();
+    for(int i = 0; i < trials; ++i){
+        back_solve_static(A, b, x, n);
+    }
+    elapsed_time_static = omp_get_wtime() - elapsed_time_static;
+    for(int i = 0; i < n; ++i){
+        sum_x_static += x[i];
+    }
 
-    // // Run time trials for dynamic
-    // int sum_x_dynamic = 0;
-    // double elapsed_time_dynamic = omp_get_wtime();
-    // for(int i = 0; i < trials; ++i){
-    //     back_solve_dynamic(A, b, x, n);
-    // }
-    // elapsed_time_dynamic = omp_get_wtime() - elapsed_time_dynamic;
-    // for(int i = 0; i < n; ++i){
-    //     sum_x_dynamic += x[i];
-    // }
+    // Run time trials for dynamic
+    int sum_x_dynamic = 0;
+    double elapsed_time_dynamic = omp_get_wtime();
+    for(int i = 0; i < trials; ++i){
+        back_solve_dynamic(A, b, x, n);
+    }
+    elapsed_time_dynamic = omp_get_wtime() - elapsed_time_dynamic;
+    for(int i = 0; i < n; ++i){
+        sum_x_dynamic += x[i];
+    }
 
-    // // Display results
-    // cout << "Serial sum_x = " << sum_x_serial << endl;
-    // cout << "Static Scheduling sum_x = " << sum_x_static << endl;
-    // cout << "Dynamic Scheduling sum_x = " << sum_x_dynamic << endl;
-    // cout << "Serial elapsed Time = " << elapsed_time_serial << " seconds." << endl;
-    // cout << "Static elapsed Time = " << elapsed_time_static << " seconds." << endl;
-    // cout << "Dynamic elapsed Time = " << elapsed_time_dynamic << " seconds." << endl;
+    // Display results
+    cout << "Serial sum_x = " << sum_x_serial << endl;
+    cout << "Static Scheduling sum_x = " << sum_x_static << endl;
+    cout << "Dynamic Scheduling sum_x = " << sum_x_dynamic << endl;
+    cout << "Serial elapsed Time = " << elapsed_time_serial << " seconds." << endl;
+    cout << "Static elapsed Time = " << elapsed_time_static << " seconds." << endl;
+    cout << "Dynamic elapsed Time = " << elapsed_time_dynamic << " seconds." << endl;
     
-    // // Clean up memory
-    // delete[] A;
-    // delete[] x;
-    // delete[] b;
+    // Clean up memory
+    delete[] A;
+    delete[] x;
+    delete[] b;
 }
