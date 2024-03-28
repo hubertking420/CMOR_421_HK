@@ -1,4 +1,5 @@
 CMOR 421: High Performance Computing
+
 3/21/2024
 Creating interactive node with 24 CPUs:
 srun --partition=interactive --pty --export=ALL --cpus-per-task=24 --time=00:30:00 /bin/bash
