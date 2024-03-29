@@ -24,6 +24,10 @@ echo "My job ran on:"
 echo $SLURM_NODELIST 
 srun -n 2 ./<name of executable>
 
+Test on login node:
+mpic++ hello_world_mpi.cpp -o hello
+mpirun -n 2 ./hello
+
 Partition options:
 Commons, scavenge, interactive
 
