@@ -8,7 +8,7 @@ int main(int argc, char * argv[]){
     int trials = 5;
 
     // Initialize multiplication I x I = C
-    cout << "Matrix size n = " << n << ", block size = " << BLOCK_SIZE << endl;
+    cout << "Matrix size n = " << n << endl;
     MPI_Init(NULL, NULL);
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -16,8 +16,8 @@ int main(int argc, char * argv[]){
     MPI_Status status;
     MPI_Barrier(MPI_COMM_WORLD);
     double start = MPI_Wtime();
-    int sqrt_p = /(int)sqrt(size); 
     int block_size = n / sqrt_p;
+    int sqrt_p = (int)sqrt(size); 
     // Allocate memory for storing partitions
     double * A_ij = new double[block_size * block_size];
     double * B_ij = new double[block_size * block_size];
@@ -116,10 +116,5 @@ int main(int argc, char * argv[]){
     delete[] C;
     double elapsed = MPI_Wtime() - start;
     MPI_Finalize();
-    cout << "SUMMA elapsed time = " << elapsed << endl;
-
-    delete A_1;
-    delete B_1;
-    delete C_1;
-    
+    cout << "SUMMA elapsed time = " << elapsed << endl; 
 }
