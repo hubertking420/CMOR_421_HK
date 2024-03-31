@@ -27,32 +27,26 @@ int main(int argc, char * argv[]){
     double * B_recv = new double[block_size * block_size];
     // Construct system on root rank i
     if (rank == 0) {
-        for (int p = 0; p < size; ++p) {
+        for (int p = size-1; p > 0; --p) {
             // Calculate start and end index
             int row_start_p = (p / sqrt_p) * block_size;
             int col_start_p = (p % sqrt_p) * block_size;
             for(int i = 0; i < row_start_p; ++i){
                 for(int j = 0; j < col_start_p; ++j){
-                    A[i*n + j] = 1.0;
-                    B[i*n + j] = 1.0;
+                    A_ij[i*n + j] = 1.0;
+                    B_ij[i*n + j] = 1.0;
                 }
             }
             // Rank 0 sends the blocks to other processes
             if(p > 0){
                 MPI_Send(A_ij, block_size*block_size, MPI_DOUBLE, p, 0, MPI_COMM_WORLD);
                 MPI_Send(B_ij, block_size*block_size, MPI_DOUBLE, p, 0, MPI_COMM_WORLD);
-                MPI_Send(C_ij, block_size*block_size, MPI_DOUBLE, p, 0, MPI_COMM_WORLD);
-           } 
+            } 
         } 
-    }
-    else {
-        // Rank > 0 recieves partitions
-        for(int p = 1; p < size; ++p){
-            MPI_Recv(A_ij, block_size*block_size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-            MPI_Recv(B_ij, block_size*block_size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
-            MPI_Recv(C_ij, block_size*block_size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        }   
-    }
+    } else {
+        MPI_Recv(A_ij, block_size*block_size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
+        MPI_Recv(B_ij, block_size*block_size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
+    }   
     // Row and column communicator 
     int row_color = rank / p; 
     MPI_Comm row_comm;
