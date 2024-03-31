@@ -16,32 +16,8 @@ int main(int argc, char * argv[]){
     MPI_Status status;
     MPI_Barrier(MPI_COMM_WORLD);
     double start = MPI_Wtime();
-
-    int block_size = n / (int)sqrt(size); 
-    // Allocate final matrix product
-    if(rank == 0){
-        double * C = new double[n * n];
-    }
-    if (rank == 0) {
-        for(int i = 0; i < block_size; ++i){
-            for(int j = 0; j < block_size; ++j){
-                C[i*n + j] = C_ij[i*n + j];
-            }
-        }
-        for (int p = 1; p < size; ++p) { 
-            MPI_Send(C_ij, block_size*block_size, MPI_DOUBLE, p, 0, MPI_COMM_WORLD);
-            MPI_Recv(C_ij, block_size*block_size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
-            // Calculate start and end index
-            int row_start_p = (p / 2) * block_size;
-            int col_start_p = (p % 2) * block_size;
-            for(int i = row_start_p; i < row_start_p+block_size; ++i){
-                for(int j = 0; j < col_start_p; ++j){
-                    C[i*n + j] = C_ij[i*n + j];
-                }
-            } 
-        } 
-    }
-    }
+    int sqrt_p = /(int)sqrt(size); 
+    int block_size = n / sqrt_p;
     // Allocate memory for storing partitions
     double * A_ij = new double[block_size * block_size];
     double * B_ij = new double[block_size * block_size];
@@ -50,12 +26,11 @@ int main(int argc, char * argv[]){
     double * A_recv = new double[block_size * block_size];
     double * B_recv = new double[block_size * block_size];
     // Construct system on root rank i
-    // TODO: use MPI_scatter
     if (rank == 0) {
         for (int p = 0; p < size; ++p) {
             // Calculate start and end index
-            int row_start_p = (p / 2) * block_size;
-            int col_start_p = (p % 2) * block_size;
+            int row_start_p = (p / sqrt_p) * block_size;
+            int col_start_p = (p % sqrt_p) * block_size;
             for(int i = 0; i < row_start_p; ++i){
                 for(int j = 0; j < col_start_p; ++j){
                     A[i*n + j] = 1.0;
@@ -85,7 +60,7 @@ int main(int argc, char * argv[]){
     int col_color = rank % p;
     MPI_Comm col_comm;
     MPI_Comm_split(MPI_COMM_WORLD, col_color, rank, &col_comm);
-    // Compute p local outer products (op) 
+    // Compute p local outer products 
     for(int rank = 0; rank < p; ++rank){
         // Broadcast Aij and Bij across rows/cols
         MPI_Bcast(A_recv, block_size*block_size, MPI_DOUBLE, rank, row_comm);
@@ -98,28 +73,39 @@ int main(int argc, char * argv[]){
                 }
             }
         }
-    }
-    // Send all partitions to rank 0
-    if(rank != 0){
-        for(int p = 1; p < size; ++p){
-            MPI_Send(C_ij, block_size*block_size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
-        } 
-    }
-    // Construct C using partitions Cij on root rank
-    else{
-        for(int p = 0; p < size; ++p) {         
-            if(p > 0){
-                MPI_Recv(C_ij, block_size*block_size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
-            }    
-            // Calculate start and end index
-            int row_start_p = (p / 2) * block_size;
-            int col_start_p = (p % 2) * block_size;
-            for(int i = row_start_p; i < row_start_p+block_size; ++i){
-                for(int j = 0; j < col_start_p; ++j){
-                    C[i*n + j] = C_ij[i*n + j];
+    } 
+    double *C = nullptr;
+    if(rank == 0) {
+        C = new double[n * n];  // Allocate space for the full matrix on rank 0
+
+        // Directly place rank 0's data into C
+        // This step requires correct calculation of where rank 0's data belongs in the full matrix
+        // Assuming a simple scheme where rank 0 holds the top-left block
+        for(int i = 0; i < block_size; ++i){
+            for(int j = 0; j < block_size; ++j){
+                C[i * n + j] = C_ij[i * block_size + j];
+            }
+        }
+
+        // Receive blocks from other ranks
+        for(int p = 1; p < size; ++p) {
+            // Calculate the source rank's block's correct position in C
+            int row_start_p = (p / sqrt(size)) * block_size;
+            int col_start_p = (p % (int)sqrt(size)) * block_size;
+        
+            MPI_Recv(C_ij, block_size * block_size, MPI_DOUBLE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+            // Place received data into C
+            for(int i = 0; i < block_size; ++i){
+                for(int j = 0; j < block_size; ++j){
+                    C[(row_start_p+i)*n + (col_start_p+j)] = C_ij[i*block_size+j];
                 }
-            } 
-        } 
+            }
+        }
+    }
+    else {
+        // Non-root ranks send their C_ij block to rank 0
+        MPI_Send(C_ij, block_size * block_size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
     }
     // Clear local memory
     delete[] A_recv;
@@ -127,9 +113,11 @@ int main(int argc, char * argv[]){
     delete[] A_ij;
     delete[] B_ij;
     delete[] C_ij;
-
-    double elapsed = MPI_Wtime()-start;
+    delete[] C;
+    double elapsed = MPI_Wtime() - start;
     MPI_Finalize();
+    cout << "SUMMA elapsed time = " << elapsed << endl;
+
     delete A_1;
     delete B_1;
     delete C_1;
