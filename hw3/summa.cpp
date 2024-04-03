@@ -63,11 +63,23 @@ int main(int argc, char * argv[]){
     int col_color = rank % p;
     MPI_Comm col_comm;
     MPI_Comm_split(MPI_COMM_WORLD, col_color, rank, &col_comm);
+
     // Compute p local outer products 
-    for(int rank = 0; rank < p; ++rank){
+    for(int r = 0; r < p; ++r){
+        int root_for_A = r; // In iteration r, the processor in column r broadcasts A
+        int root_for_B = r * sqrt_p; // In iteration r, the processor in row r broadcasts B
+        if (col == r) {
+            MPI_Bcast(A_ij, block_size * block_size, MPI_DOUBLE, root_for_A, row_comm); // Broadcast along the row
+        }
+
+        // Processor that should broadcast B_ij
+        if (row == r) {
+            MPI_Bcast(B_ij, block_size * block_size, MPI_DOUBLE, root_for_B, col_comm); // Broadcast along the column
+        }    
+    
         // Broadcast Aij and Bij across rows/cols
-        MPI_Bcast(A_recv, block_size*block_size, MPI_DOUBLE, rank, row_comm);
-        MPI_Bcast(B_recv, block_size*block_size, MPI_DOUBLE, rank, col_comm);  
+        MPI_Bcast(A_recv, block_size*block_size, MPI_DOUBLE, r, row_comm);
+        MPI_Bcast(B_recv, block_size*block_size, MPI_DOUBLE, r, col_comm);  
         // Accumulate blocked outer product in Cij 
         for(int i = 0; i < block_size; ++i){
             for(int j = 0; j < block_size; ++j){
@@ -80,10 +92,6 @@ int main(int argc, char * argv[]){
     double *C = nullptr;
     if(rank == 0) {
         C = new double[n * n];  // Allocate space for the full matrix on rank 0
-
-        // Directly place rank 0's data into C
-        // This step requires correct calculation of where rank 0's data belongs in the full matrix
-        // Assuming a simple scheme where rank 0 holds the top-left block
         for(int i = 0; i < block_size; ++i){
             for(int j = 0; j < block_size; ++j){
                 C[i * n + j] = C_ij[i * block_size + j];
