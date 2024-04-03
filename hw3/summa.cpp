@@ -7,13 +7,17 @@ int main(int argc, char * argv[]){
     int n = atoi(argv[1]);
     int trials = 5;
 
-    // Initialize multiplication I x I = C
-    cout << "Matrix size n = " << n << endl;
     MPI_Init(NULL, NULL);
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size); 
     MPI_Status status;
+
+    // Initialize multiplication I x I = C
+    if(rank == 0){
+        cout << "Matrix size n = " << n << endl;
+    }
+
     MPI_Barrier(MPI_COMM_WORLD);
     double start = MPI_Wtime();
     int p = size;
@@ -49,6 +53,9 @@ int main(int argc, char * argv[]){
         MPI_Recv(A_ij, block_size*block_size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
         MPI_Recv(B_ij, block_size*block_size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
     }   
+    MPI_Barrier(MPI_COMM_WORLD);
+    cout << "Paritions recieved on rank: " << rank << endl;
+
     // Row and column communicator 
     int row_color = rank / p; 
     MPI_Comm row_comm;
@@ -103,6 +110,12 @@ int main(int argc, char * argv[]){
         // Non-root ranks send their C_ij block to rank 0
         MPI_Send(C_ij, block_size * block_size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
     }
+    MPI_Barrier(MPI_COMM_WORLD);
+    cout << "Computations completed on rank: " << rank << endl;
+    if(rank == 0){
+        cout << "SUMMA elapsed time = " << elapsed << endl; 
+    }
+
     // Clear local memory
     delete[] A_recv;
     delete[] B_recv;
@@ -114,5 +127,4 @@ int main(int argc, char * argv[]){
     }
     double elapsed = MPI_Wtime() - start;
     MPI_Finalize();
-    cout << "SUMMA elapsed time = " << elapsed << endl; 
 }
