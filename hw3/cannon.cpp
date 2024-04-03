@@ -109,10 +109,10 @@ int main(int argc, char * argv[]){
         }
 
         // Receive blocks from other ranks
-        for(int p = 1; p < size; ++p) {
+        for(int k = 1; k < size; ++k) {
             // Calculate the starting indices for parition of C
-            int row_start_p = (s/p)*block_size;
-            int col_start_p = (s%p)*block_size;
+            int row_start_p = (k/p)*block_size;
+            int col_start_p = (k%p)*block_size;
         
             MPI_Recv(C_ij, block_size*block_size, MPI_DOUBLE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
