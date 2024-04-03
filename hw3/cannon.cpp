@@ -13,13 +13,12 @@ int main(int argc, char * argv[]){
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size); 
     MPI_Status status;
-
+    MPI_Barrier(MPI_COMM_WORLD);
     if(rank == 0){
         cout << "Matrix size n = " << n << endl;
     }
 
     // Dimensions of mesh
-    MPI_Barrier(MPI_COMM_WORLD);
     double start = MPI_Wtime();
     int s = size;
     int p = (int)sqrt(s);
@@ -131,6 +130,7 @@ int main(int argc, char * argv[]){
     }
     MPI_Barrier(MPI_COMM_WORLD);
     cout << "Paritions written into C from rank = " << rank << endl;
+    
     if(rank == 0){
         double sum_C = 0.0;
         for (int i = 0; i < n * n; ++i){
@@ -138,7 +138,8 @@ int main(int argc, char * argv[]){
         }
         cout << "Cannon's sum_C = " << sum_C << endl;    
         delete[] C;
-        cout << "Elapsed time: " << endl;
+        double elapsed = start-MPI_Wtime();
+        cout << "Elapsed time: " << elapsed << endl;
     }
     // Clear local memory
     delete[] A_ij;
