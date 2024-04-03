@@ -131,14 +131,19 @@ int main(int argc, char * argv[]){
     }
     MPI_Barrier(MPI_COMM_WORLD);
     cout << "Paritions written into C from rank = " << rank << endl;
-    // Clear local memory
-    delete[] A_ij;
-    delete[] B_ij;
-    delete[] C_ij;
     if(rank == 0){
+        double sum_C = 0.0;
+        for (int i = 0; i < n * n; ++i){
+            sum_C += C[i];
+        }
+        cout << "Cannon's sum_C = " << sum_C << endl;    
         delete[] C;
         cout << "Elapsed time: " << endl;
     }
+    // Clear local memory
+    delete[] A_ij;
+    delete[] B_ij;
+    delete[] C_ij; 
     MPI_Finalize();
 
 
