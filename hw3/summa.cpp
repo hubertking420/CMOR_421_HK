@@ -16,8 +16,10 @@ int main(int argc, char * argv[]){
     MPI_Status status;
     MPI_Barrier(MPI_COMM_WORLD);
     double start = MPI_Wtime();
+    int p = size;
+    int sqrt_p = (int)sqrt(size);
     int block_size = n / sqrt_p;
-    int sqrt_p = (int)sqrt(size); 
+
     // Allocate memory for storing partitions
     double * A_ij = new double[block_size * block_size];
     double * B_ij = new double[block_size * block_size];
@@ -107,7 +109,9 @@ int main(int argc, char * argv[]){
     delete[] A_ij;
     delete[] B_ij;
     delete[] C_ij;
-    delete[] C;
+    if(rank == 0){
+        delete[] C;
+    }
     double elapsed = MPI_Wtime() - start;
     MPI_Finalize();
     cout << "SUMMA elapsed time = " << elapsed << endl; 
