@@ -68,10 +68,10 @@ int main(int argc, char * argv[]){
     // Compute p local outer products 
     for(int r = 0; r < p; ++r){
     	if(rank%sqrt_p == r){
-			memcpy(A_recv, A_ij, block_size*block_size*sizeof(float));
+			memcpy(A_recv, A_ij, block_size*block_size*sizeof(double));
 		}
 		if(rank/sqrt_p == r){
-			memcpy(B_recv, B_ij, block_size*block_size*sizeof(float));
+			memcpy(B_recv, B_ij, block_size*block_size*sizeof(double));
 		}
         // Broadcast Aij and Bij across rows/cols
         MPI_Bcast(A_recv, block_size*block_size, MPI_DOUBLE, r, row_comm);
