@@ -85,6 +85,9 @@ int main(int argc, char * argv[]){
             }
         }
     } 
+    MPI_Barrier(MPI_COMM_WORLD);
+    cout << "Paritions computed on rank: " << rank << endl;
+
     double *C = nullptr;
     if(rank == 0) {
         C = new double[n * n];  // Allocate space for the full matrix on rank 0
