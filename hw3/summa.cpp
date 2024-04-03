@@ -120,6 +120,7 @@ int main(int argc, char * argv[]){
     }
     MPI_Barrier(MPI_COMM_WORLD);
     cout << "Computations completed on rank: " << rank << endl;
+    double elapsed = MPI_Wtime() - start;
     if(rank == 0){
         cout << "SUMMA elapsed time = " << elapsed << endl; 
     }
@@ -133,6 +134,5 @@ int main(int argc, char * argv[]){
     if(rank == 0){
         delete[] C;
     }
-    double elapsed = MPI_Wtime() - start;
     MPI_Finalize();
 }
