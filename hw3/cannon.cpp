@@ -61,14 +61,14 @@ int main(int argc, char * argv[]){
     // Shift each row of A left by 'x' positions
     int origin_A = x * p + (y - x + p) % p; // Source rank for A submatrix
     int dest_A = x * p + (y + x) % p;       // Destination rank for A submatrix
-    MPI_Sendrecv_replace(A_ij, block_size * block_size, MPI_DOUBLE, dest_A, 0,
+    MPI_Sendrecv_replace(A_ij, block_size*block_size, MPI_DOUBLE, dest_A, 0,
                         origin_A, 0, MPI_COMM_WORLD, &status);
 
     // Initial skew for B
     // Shift each column of B up by 'y' positions
     int origin_B = ((x - y + p) % p) * p + y; // Source rank for B submatrix
     int dest_B = ((x + y) % p) * p + y;       // Destination rank for B submatrix
-    MPI_Sendrecv_replace(B_ij, block_size * block_size, MPI_DOUBLE, dest_B, 0,
+    MPI_Sendrecv_replace(B_ij, block_size*block_size, MPI_DOUBLE, dest_B, 0,
                         origin_B, 0, MPI_COMM_WORLD, &status);
     MPI_Barrier(MPI_COMM_WORLD);
     cout << "Inital skew of A and B completed on rank: " << rank << endl;
@@ -88,8 +88,8 @@ int main(int argc, char * argv[]){
         int dest_B = ((x - 1 + p) % p) * p + y;
         int origin_A = x * p + (y + 1) % p;
         int origin_B = ((x + 1) % p) * p + y;
-        MPI_Sendrecv_replace(A_ij, block_size*block_size, MPI_DOUBLE, dest_A, 0, origin_A, block_size*block_size, MPI_DOUBLE, origin_A, 0, MPI_COMM_WORLD, status);
-        MPI_Sendrecv_replace(B_ij, block_size*block_size, MPI_DOUBLE, dest_B, 0, origin_B, block_size*block_size, MPI_DOUBLE, origin_B, 0, MPI_COMM_WORLD, status); 
+        MPI_Sendrecv_replace(A_ij, block_size*block_size, MPI_DOUBLE, dest_A, 0, origin_A, 0, MPI_COMM_WORLD, status);
+        MPI_Sendrecv_replace(B_ij, block_size*block_size, MPI_DOUBLE, dest_B, 0, origin_B, 0, MPI_COMM_WORLD, status); 
     }
     MPI_Barrier(MPI_COMM_WORLD);
     cout << "Paritions of C computed on rank: " << rank << endl;
