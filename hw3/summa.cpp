@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cmath>
+#include <cstring>
 #include "mpi.h"
 using namespace std;
 
@@ -66,11 +67,11 @@ int main(int argc, char * argv[]){
 
     // Compute p local outer products 
     for(int r = 0; r < p; ++r){
-    	if(rank%sqrt_p == i){
-			memcpy(A_recv, A_ij, blockRowsA*blockRowsB*sizeof(float));
+    	if(rank%sqrt_p == r){
+			memcpy(A_recv, A_ij, block_size*block_size*sizeof(float));
 		}
-		if(rank/sqrt_p == i){
-			memcpy(B_recv, B_ij, blockRowsB*blockColsB*sizeof(float));
+		if(rank/sqrt_p == r){
+			memcpy(B_recv, B_ij, block_size*block_size*sizeof(float));
 		}
         // Broadcast Aij and Bij across rows/cols
         MPI_Bcast(A_recv, block_size*block_size, MPI_DOUBLE, r, row_comm);
