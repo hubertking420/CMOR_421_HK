@@ -130,7 +130,9 @@ int main(int argc, char * argv[]){
     }
     MPI_Barrier(MPI_COMM_WORLD);
     cout << "Paritions written into C from rank = " << rank << endl;
-    
+
+    double elapsed = start-MPI_Wtime();
+   
     if(rank == 0){
         double sum_C = 0.0;
         for (int i = 0; i < n * n; ++i){
@@ -138,7 +140,6 @@ int main(int argc, char * argv[]){
         }
         cout << "Cannon's sum_C = " << sum_C << endl;    
         delete[] C;
-        double elapsed = start-MPI_Wtime();
         cout << "Elapsed time: " << elapsed << endl;
     }
     // Clear local memory
