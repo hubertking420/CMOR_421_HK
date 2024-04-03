@@ -101,7 +101,36 @@ int main(int argc, char * argv[]){
 
     MPI_Barrier(MPI_COMM_WORLD);
     cout << "Computation completed on rank: " << rank << endl;
- 
+    if(rank == 0) {
+        C = new double[n * n];  // Allocate space for the full matrix on rank 0
+        for(int i = 0; i < block_size; ++i){
+            for(int j = 0; j < block_size; ++j){
+                C[i * n + j] = C_ij[i * block_size + j];
+            }
+        }
+
+        // Receive blocks from other ranks
+        for(int p = 1; p < size; ++p) {
+            // Calculate the starting indices for parition of C
+            int row_start_p = (s/p)*block_size;
+            int col_start_p = (s%p)*block_size;
+        
+            MPI_Recv(C_ij, block_size*block_size, MPI_DOUBLE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+            // Place received data into C
+            for(int i = 0; i < block_size; ++i){
+                for(int j = 0; j < block_size; ++j){
+                    C[(row_start_p+i)*n + (col_start_p+j)] = C_ij[i*block_size+j];
+                }
+            }
+        }
+    }
+    else {
+        // Non-root ranks send their C_ij block to rank 0
+        MPI_Send(C_ij, block_size*block_size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD);
+    }
+    MPI_Barrier(MPI_COMM_WORLD);
+    cout << "Paritions written into C from rank = " << rank << endl;
     // Clear local memory
     delete[] A_ij;
     delete[] B_ij;
