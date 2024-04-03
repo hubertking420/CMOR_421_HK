@@ -66,17 +66,12 @@ int main(int argc, char * argv[]){
 
     // Compute p local outer products 
     for(int r = 0; r < p; ++r){
-        int root_for_A = r; // In iteration r, the processor in column r broadcasts A
-        int root_for_B = r * sqrt_p; // In iteration r, the processor in row r broadcasts B
-        if (col == r) {
-            MPI_Bcast(A_ij, block_size * block_size, MPI_DOUBLE, root_for_A, row_comm); // Broadcast along the row
-        }
-
-        // Processor that should broadcast B_ij
-        if (row == r) {
-            MPI_Bcast(B_ij, block_size * block_size, MPI_DOUBLE, root_for_B, col_comm); // Broadcast along the column
-        }    
-    
+    	if(rank%sqrt_p == i){
+			memcpy(A_recv, A_ij, blockRowsA*blockRowsB*sizeof(float));
+		}
+		if(rank/sqrt_p == i){
+			memcpy(B_recv, B_ij, blockRowsB*blockColsB*sizeof(float));
+		}
         // Broadcast Aij and Bij across rows/cols
         MPI_Bcast(A_recv, block_size*block_size, MPI_DOUBLE, r, row_comm);
         MPI_Bcast(B_recv, block_size*block_size, MPI_DOUBLE, r, col_comm);  
