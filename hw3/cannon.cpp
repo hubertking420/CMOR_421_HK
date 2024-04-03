@@ -88,8 +88,8 @@ int main(int argc, char * argv[]){
         int dest_B = ((x - 1 + p) % p) * p + y;
         int origin_A = x * p + (y + 1) % p;
         int origin_B = ((x + 1) % p) * p + y;
-        MPI_Sendrecv_replace(A_ij, block_size*blocksize, MPI_DOUBLE, dest_A, 0, A_ij, block_size*blocksize, MPI_DOUBLE, origin_A, 0, MPI_COMM_WORLD, status);
-        MPI_Sendrecv_replace(B_ij, block_size*blocksize, MPI_DOUBLE, dest_B, 0, B_ij, block_size*blocksize, MPI_DOUBLE, origin_B, 0, MPI_COMM_WORLD, status); 
+        MPI_Sendrecv_replace(A_ij, block_size*block_size, MPI_DOUBLE, dest_A, 0, A_ij, block_size*block_size, MPI_DOUBLE, origin_A, 0, MPI_COMM_WORLD, status);
+        MPI_Sendrecv_replace(B_ij, block_size*block_size, MPI_DOUBLE, dest_B, 0, B_ij, block_size*block_size, MPI_DOUBLE, origin_B, 0, MPI_COMM_WORLD, status); 
     }
     MPI_Barrier(MPI_COMM_WORLD);
     cout << "Paritions of C computed on rank: " << rank << endl;
