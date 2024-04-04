@@ -8,6 +8,9 @@ int main(int argc, char * argv[]){
     int n = atoi(argv[1]);
     int trials = 5;
     bool verbose = false;
+    bool display_A = false;
+    bool display_B = false;
+    bool display_C = false;
 
     MPI_Init(NULL, NULL);
     int rank, size;
@@ -44,18 +47,17 @@ int main(int argc, char * argv[]){
     // Construct system on root rank
     if (rank == 0) {
         for (int k = size-1; k > 0; --k) {
-            // Calculate the starting indices for parition of C
+            // Calculate the starting indices for parition
             int row_start = (k/p)*block_size;
             int col_start = (k%p)*block_size;
             
-            // Place received data into C
+            // Write in paritions
             for(int i = 0; i < block_size; ++i){
                 for(int j = 0; j < block_size; ++j){
                     A_ij[i*block_size+j] = A[(row_start+i)*n + (col_start+j)];
                     B_ij[i*block_size+j] = B[(row_start+i)*n + (col_start+j)];
                }
-            }
-            
+            } 
             // Rank 0 sends the blocks to other processes
             if(k > 0){
                 MPI_Send(A_ij, block_size*block_size, MPI_DOUBLE, k, 0, MPI_COMM_WORLD);

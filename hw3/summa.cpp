@@ -8,6 +8,10 @@ using namespace std;
 int main(int argc, char * argv[]){
     int n = atoi(argv[1]);
     int trials = 5;
+    bool verbose = true;
+    bool display_A = true;
+    bool display_B = true;
+    bool display_C = true;
 
     MPI_Init(NULL, NULL);
     int rank, size;
@@ -31,11 +35,12 @@ int main(int argc, char * argv[]){
     // Start time
     double start = MPI_Wtime();
 
+
     // Dimensions of mesh
     int s = size;
     int p = (int)sqrt(s);
     int block_size = n / p;
-
+    
     // Allocate memory for storing partitions
     double * A_ij = new double[block_size * block_size];
     double * B_ij = new double[block_size * block_size];
@@ -86,10 +91,10 @@ int main(int argc, char * argv[]){
 
     // Main computational loop
     for(int r = 0; r < p; ++r){
-    	if(rank%sqrt_p == r){
+    	if(rank%p == r){
 			memcpy(A_recv, A_ij, block_size*block_size*sizeof(double));
 		}
-		if(rank/sqrt_p == r){
+		if(rank/p == r){
 			memcpy(B_recv, B_ij, block_size*block_size*sizeof(double));
 		}
         // Broadcast Aij and Bij across rows/cols
