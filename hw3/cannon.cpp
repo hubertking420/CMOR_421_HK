@@ -7,6 +7,7 @@ using namespace std;
 int main(int argc, char * argv[]){
     int n = atoi(argv[1]);
     int trials = 5;
+    bool verbose = false;
 
     MPI_Init(NULL, NULL);
     int rank, size;
@@ -69,8 +70,7 @@ int main(int argc, char * argv[]){
 
     // Progress check
     MPI_Barrier(MPI_COMM_WORLD);
-    bool check_paritions_recieved = false;
-    if(check_paritions_recieved){
+    if(verbose){
         cout << "Paritions recieved on rank: " << rank << endl;
     }
 
@@ -92,8 +92,7 @@ int main(int argc, char * argv[]){
 
     // Progress check
     MPI_Barrier(MPI_COMM_WORLD);
-    bool check_initial_skew = false;
-    if(check_initial_skew){
+    if(verbose){
         cout << "Inital skew of A and B completed on rank: " << rank << endl;
     }
 
@@ -121,8 +120,7 @@ int main(int argc, char * argv[]){
 
     // Progress check
     MPI_Barrier(MPI_COMM_WORLD);
-    bool check_paritions_computed = true;
-    if(check_paritions_computed){
+    if(verbose){
         cout << "Partitions of C computed on rank: " << rank << endl;
     }
 
@@ -161,8 +159,7 @@ int main(int argc, char * argv[]){
 
     // Progress check
     MPI_Barrier(MPI_COMM_WORLD);
-    bool check_gather = false;
-    if(check_gather){
+    if(verbose){
         cout << "Paritions written into C from rank = " << rank << endl;
     }
 
@@ -171,58 +168,47 @@ int main(int argc, char * argv[]){
     double elapsed = MPI_Wtime()-start;
     
     // Display the matrix A
-    bool display_A = false;
-    if(rank == 0){
-        if(display_A){
-            cout << "Matrix A:" << endl;
-            for (int i = 0; i < n * n; ++i){
-                cout << A[i] << " ";
-                if((i+1) % block_size == 0){
-                    cout << "\n";
-                }
+    if(display_A){
+        cout << "Matrix A:" << endl;
+        for (int i = 0; i < n * n; ++i){
+            cout << A[i] << " ";
+            if((i+1) % block_size == 0){
+                cout << "\n";
             }
         }
     }
-   // Display the matrix B
-   bool display_B = false;
-    if(rank == 0){
-        if(display_B){
-            cout << "Matrix B:" << endl;
-            for (int i = 0; i < n * n; ++i){
-                cout << B[i] << " ";
-                if((i+1) % block_size == 0){
-                    cout << "\n";
-                }
+    // Display the matrix B
+    if(display_B){
+        cout << "Matrix B:" << endl;
+        for (int i = 0; i < n * n; ++i){
+            cout << B[i] << " ";
+            if((i+1) % block_size == 0){
+                cout << "\n";
             }
         }
     }
     // Display the matrix C
-    bool display_C = true;
-    if(rank == 0){
-        // Display the matrix C
-        cout << "Matrix C:" << endl;
-        if(display_C){
-            for (int i = 0; i < n * n; ++i){
-                cout << C[i] << " ";
-                if((i+1) % n == 0){
-                    cout << "\n";
-                }
+    if(display_C){
+        for (int i = 0; i < n * n; ++i){
+            cout << C[i] << " ";
+            if((i+1) % n == 0){
+                cout << "\n";
             }
         }
+    }
+    if(rank == 0){
         double sum_C = 0.0;
         for (int i = 0; i < n * n; ++i){           
             sum_C += C[i];
         }
         cout << "Cannon's sum_C = " << sum_C << endl;    
         delete[] C;
-        cout << "Elapsed time: " << elapsed << endl;
+        cout << "Elapsed time: " << elapsed << endl; 
     }
-
 
     // Clear memory
     delete[] A_ij;
     delete[] B_ij;
     delete[] C_ij; 
     MPI_Finalize();
-
 }
