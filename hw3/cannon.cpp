@@ -29,7 +29,7 @@ int main(int argc, char * argv[]){
     double * A_ij = new double[block_size * block_size];
     double * B_ij = new double[block_size * block_size];
     double * C_ij = new double[block_size * block_size];
-    // Construct system on root rank i
+    // Construct system on root rank
     if (rank == 0) {
         for (int k = size-1; k > 0; --k) {
             // Calculate start and end index
@@ -50,7 +50,8 @@ int main(int argc, char * argv[]){
     } else {
         MPI_Recv(A_ij, block_size*block_size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
         MPI_Recv(B_ij, block_size*block_size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
-    }   
+    }
+
     MPI_Barrier(MPI_COMM_WORLD);
     cout << "Paritions recieved on rank: " << rank << endl;
 
@@ -133,9 +134,39 @@ int main(int argc, char * argv[]){
 
     double elapsed = MPI_Wtime()-start;
     
+    
+    bool display_A = true;
+    if(rank == 0){
+        // Display the matrix C
+        if(display_A){
+            cout << "Matrix A:" << endl;
+            for (int i = 0; i < n * n; ++i){
+                cout << A[i] << " ";
+                if((i+1) % n == 0){
+                    cout << "\n";
+                }
+            }
+        }
+    }
+    bool display_B = true;
+    if(rank == 0){
+        // Display the matrix C
+        if(display_B){
+            cout << "Matrix B:" << endl;
+            for (int i = 0; i < n * n; ++i){
+                cout << B[i] << " ";
+                if((i+1) % n == 0){
+                    cout << "\n";
+                }
+            }
+        }
+    }
+    
     bool display_C = true;
     if(rank == 0){
         // Display the matrix C
+        cout << "Matrix C:" << endl;
+
         if(display_C){
             for (int i = 0; i < n * n; ++i){
                 cout << C[i] << " ";
