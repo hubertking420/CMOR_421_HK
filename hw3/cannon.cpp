@@ -14,6 +14,14 @@ int main(int argc, char * argv[]){
     MPI_Comm_size(MPI_COMM_WORLD, &size); 
     MPI_Status status;
     MPI_Barrier(MPI_COMM_WORLD);
+    if(rank == 0) {
+        double * A = new double[n * n];
+        double * B = new double[n * n];
+        for (int i = 0; i < n * n; ++i){
+            A[i] = 1.0;
+            B[i] = 1.0;
+        }
+    }
 
     if(rank == 0){
         cout << "Matrix size n = " << n << endl;
@@ -32,15 +40,18 @@ int main(int argc, char * argv[]){
     // Construct system on root rank
     if (rank == 0) {
         for (int k = size-1; k > 0; --k) {
-            // Calculate start and end index
-            int row_start_p = (k / p) * block_size;
-            int col_start_p = (k % p) * block_size;
-            for(int i = 0; i < row_start_p; ++i){
-                for(int j = 0; j < col_start_p; ++j){
-                    A_ij[i*n + j] = 1.0;
-                    B_ij[i*n + j] = 1.0;
-                }
+            // Calculate the starting indices for parition of C
+            int row_start = (k/p)*block_size;
+            int col_start = (k%p)*block_size;
+            
+            // Place received data into C
+            for(int i = 0; i < block_size; ++i){
+                for(int j = 0; j < block_size; ++j){
+                    A_ij[i*block_size+j] = A[(row_start+i)*n + (col_start+j)];
+                    B_ij[i*block_size+j] = B[(row_start+i)*n + (col_start+j)];
+               }
             }
+            
             // Rank 0 sends the blocks to other processes
             if(k > 0){
                 MPI_Send(A_ij, block_size*block_size, MPI_DOUBLE, k, 0, MPI_COMM_WORLD);
@@ -48,6 +59,7 @@ int main(int argc, char * argv[]){
             } 
         } 
     } else {
+        // All other processes receive
         MPI_Recv(A_ij, block_size*block_size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
         MPI_Recv(B_ij, block_size*block_size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
     }
@@ -142,7 +154,7 @@ int main(int argc, char * argv[]){
             cout << "Matrix A:" << endl;
             for (int i = 0; i < n * n; ++i){
                 cout << A[i] << " ";
-                if((i+1) % n == 0){
+                if((i+1) % block_size == 0){
                     cout << "\n";
                 }
             }
@@ -155,7 +167,7 @@ int main(int argc, char * argv[]){
             cout << "Matrix B:" << endl;
             for (int i = 0; i < n * n; ++i){
                 cout << B[i] << " ";
-                if((i+1) % n == 0){
+                if((i+1) % block_size == 0){
                     cout << "\n";
                 }
             }
