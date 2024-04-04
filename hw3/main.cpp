@@ -24,16 +24,21 @@ int main(int arc, char* argv[]){
         C[i] = 0.0;
     }
 
+    bool verbose = false;
+    bool display_A = false;
+    bool display_B = false;
+    bool display_C = false;
+
     // Serial
-    matmul_naive(n, C, A, B);
+    matmul_naive(n, C, A, B)
     reset(n, C);
 
     // SUMMA
-    summa(n, C, A, B); 
+    summa(n, C, A, B, verbose, display_A, display_B, display_C); 
     reset(n, C);
 
     // Cannon's
-    cannon(n, C, A, B);
+    cannon(n, C, A, B, verbose, display_A, display_B, display_C);
     reset(n, C);
 
     delete[] A;

@@ -5,6 +5,9 @@
 #include <chrono>
 #include "mpi.h"
 
+using namespace std;
+using namespace std::chrono;
+
 void matmul_naive(int n, double* C, double* A, double* B){
     high_resolution_clock::time_point start = high_resolution_clock::now(); 
     for (int i = 0; i < n; ++i){
@@ -28,7 +31,7 @@ void matmul_naive(int n, double* C, double* A, double* B){
     cout << "Serial elapsed time = " << elapsed_serial << endl;
 }
 
-double summa(int n, double *C, double *A, double *B, bool verbose, bool display_A, bool display_B, bool display_C){
+void summa(int n, double *C, double *A, double *B, bool verbose, bool display_A, bool display_B, bool display_C){
     MPI_Init(NULL, NULL);
     int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
