@@ -1,6 +1,7 @@
 #!/bin/bash 
 #SBATCH --job-name=CMOR-421-521
 #SBATCH --partition=scavenge
+#SBATCH --reservation=cmor421
 #SBATCH --ntasks=4 
 #SBATCH --mem-per-cpu=1G 
 #SBATCH --time=00:30:00 

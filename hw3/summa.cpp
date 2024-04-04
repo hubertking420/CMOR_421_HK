@@ -7,7 +7,6 @@ using namespace std;
 
 int main(int argc, char * argv[]){
     int n = atoi(argv[1]);
-    int trials = 5;
     bool verbose = true;
     bool display_A = true;
     bool display_B = true;
