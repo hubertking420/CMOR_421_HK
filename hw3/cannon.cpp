@@ -8,9 +8,9 @@ int main(int argc, char * argv[]){
     int n = atoi(argv[1]);
     int trials = 5;
     bool verbose = false;
-    bool display_A = false;
-    bool display_B = false;
-    bool display_C = false;
+    bool display_A = true;
+    bool display_B = true;
+    bool display_C = true;
 
     MPI_Init(NULL, NULL);
     int rank, size;
@@ -68,6 +68,27 @@ int main(int argc, char * argv[]){
         // All other processes receive blocks
         MPI_Recv(A_ij, block_size*block_size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
         MPI_Recv(B_ij, block_size*block_size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
+    }
+
+    // Display the matrix A
+    if(display_A){
+        cout << "Matrix A:" << endl;
+        for (int i = 0; i < n * n; ++i){
+            cout << A_ij[i] << " ";
+            if((i+1) % block_size == 0){
+                cout << "\n";
+            }
+        }
+    }
+    // Display the matrix B
+    if(display_B){
+        cout << "Matrix B:" << endl;
+        for (int i = 0; i < n * n; ++i){
+            cout << B_ij[i] << " ";
+            if((i+1) % block_size == 0){
+                cout << "\n";
+            }
+        }
     }
 
     // Progress check
@@ -169,26 +190,6 @@ int main(int argc, char * argv[]){
     // Stop clock
     double elapsed = MPI_Wtime()-start;
     
-    // Display the matrix A
-    if(display_A){
-        cout << "Matrix A:" << endl;
-        for (int i = 0; i < n * n; ++i){
-            cout << A[i] << " ";
-            if((i+1) % block_size == 0){
-                cout << "\n";
-            }
-        }
-    }
-    // Display the matrix B
-    if(display_B){
-        cout << "Matrix B:" << endl;
-        for (int i = 0; i < n * n; ++i){
-            cout << B[i] << " ";
-            if((i+1) % block_size == 0){
-                cout << "\n";
-            }
-        }
-    }
     // Display the matrix C
     if(display_C){
         for (int i = 0; i < n * n; ++i){

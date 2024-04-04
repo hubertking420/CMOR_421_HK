@@ -75,6 +75,29 @@ int main(int argc, char * argv[]){
         MPI_Recv(B_ij, block_size*block_size, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
     }
 
+
+    // Display the matrix A
+    if(display_A){
+        cout << "Parition of A on rank = " << rank << endl;
+        for (int i = 0; i < n * n; ++i){
+            cout << A_ij[i] << " ";
+            if((i+1) % block_size == 0){
+                cout << "\n";
+            }
+        }
+    }
+    // Display the matrix B
+    if(display_B){
+        cout << "Parition of B on rank = " << rank << endl;
+        for (int i = 0; i < n * n; ++i){
+            cout << B_ij[i] << " ";
+            if((i+1) % block_size == 0){
+                cout << "\n";
+            }
+        }
+    }
+
+
     // Progress check
     MPI_Barrier(MPI_COMM_WORLD);
     if(verbose){
@@ -159,37 +182,17 @@ int main(int argc, char * argv[]){
     // Stop clock
     double elapsed = MPI_Wtime()-start; 
     
-    // Display the matrix A
-    if(display_A){
-        cout << "Parition of A on rank = " << rank << endl;
-        for (int i = 0; i < n * n; ++i){
-            cout << A_ij[i] << " ";
-            if((i+1) % block_size == 0){
-                cout << "\n";
-            }
-        }
-    }
-    // Display the matrix B
-    if(display_B){
-        cout << "Parition of B on rank = " << rank << endl;
-        for (int i = 0; i < n * n; ++i){
-            cout << B_ij[i] << " ";
-            if((i+1) % block_size == 0){
-                cout << "\n";
-            }
-        }
-    }
-    // Display the matrix C
-    if(display_C){
-        cout << "Matrix C: " << endl;
-        for (int i = 0; i < n * n; ++i){
-            cout << C[i] << " ";
-            if((i+1) % n == 0){
-                cout << "\n";
-            }
-        }
-    }
     if(rank == 0){
+        // Display the matrix C
+        if(display_C){
+            cout << "Matrix C: " << endl;
+            for (int i = 0; i < n * n; ++i){
+                cout << C[i] << " ";
+                if((i+1) % n == 0){
+                    cout << "\n";
+                }
+            }
+        }
         double sum_C = 0.0;
         for (int i = 0; i < n * n; ++i){           
             sum_C += C[i];
