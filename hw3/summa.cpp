@@ -79,7 +79,7 @@ int main(int argc, char * argv[]){
     // Display the matrix A
     if(display_A){
         cout << "Parition of A on rank = " << rank << endl;
-        for (int i = 0; i < n * n; ++i){
+        for (int i = 0; i < block_size*block_size; ++i){
             cout << A_ij[i] << " ";
             if((i+1) % block_size == 0){
                 cout << "\n";
@@ -89,7 +89,7 @@ int main(int argc, char * argv[]){
     // Display the matrix B
     if(display_B){
         cout << "Parition of B on rank = " << rank << endl;
-        for (int i = 0; i < n * n; ++i){
+        for (int i = 0; i < block_size*block_size; ++i){
             cout << B_ij[i] << " ";
             if((i+1) % block_size == 0){
                 cout << "\n";
