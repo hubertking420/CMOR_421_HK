@@ -30,7 +30,7 @@ int main(int arc, char* argv[]){
     bool display_C = false;
 
     // Serial
-    matmul_naive(n, C, A, B)
+    matmul_naive(n, C, A, B);
     reset(n, C);
 
     // SUMMA

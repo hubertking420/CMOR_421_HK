@@ -28,7 +28,7 @@ void matmul_naive(int n, double* C, double* A, double* B){
         sum_C += C[i];
     }
     cout << "Serial sum_C = " << sum_C << endl;
-    cout << "Serial elapsed time = " << elapsed_serial << endl;
+    cout << "Serial elapsed time = " << elapsed_serial.count()*1000 << endl;
 }
 
 void summa(int n, double *C, double *A, double *B, bool verbose, bool display_A, bool display_B, bool display_C){
