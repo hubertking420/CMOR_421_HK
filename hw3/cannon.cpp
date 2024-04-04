@@ -14,6 +14,7 @@ int main(int argc, char * argv[]){
     MPI_Comm_size(MPI_COMM_WORLD, &size); 
     MPI_Status status;
     MPI_Barrier(MPI_COMM_WORLD);
+
     if(rank == 0){
         cout << "Matrix size n = " << n << endl;
     }
@@ -96,24 +97,23 @@ int main(int argc, char * argv[]){
  
 
     // Gather blocks of C
-    double *C = new double[n*n];
-
+    double *C = nullptr;
     MPI_Barrier(MPI_COMM_WORLD);
     cout << "Computation completed on rank: " << rank << endl;
     if(rank == 0) {
-        C = new double[n * n];  // Allocate space for the full matrix on rank 0
+        // Allocate space for the full matrix on rank 0
+        C = new double[n * n];
         for(int i = 0; i < block_size; ++i){
             for(int j = 0; j < block_size; ++j){
                 C[i * n + j] = C_ij[i * block_size + j];
             }
         }
-
-        // Receive blocks from other ranks
         for(int k = 1; k < size; ++k) {
             // Calculate the starting indices for parition of C
             int row_start_p = (k/p)*block_size;
             int col_start_p = (k%p)*block_size;
-        
+
+            // Receive blocks from other ranks        
             MPI_Recv(C_ij, block_size*block_size, MPI_DOUBLE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
             // Place received data into C
@@ -131,11 +131,21 @@ int main(int argc, char * argv[]){
     MPI_Barrier(MPI_COMM_WORLD);
     cout << "Paritions written into C from rank = " << rank << endl;
 
-    double elapsed = start-MPI_Wtime();
-   
+    double elapsed = MPI_Wtime()-start;
+    
+    bool display_C = true;
     if(rank == 0){
+        // Display the matrix C
+        if(display_C){
+            for (int i = 0; i < n * n; ++i){
+                cout << C[i] << " ";
+                if((i+1) % n == 0){
+                    cout << "\n";
+                }
+            }
+        }
         double sum_C = 0.0;
-        for (int i = 0; i < n * n; ++i){
+        for (int i = 0; i < n * n; ++i){           
             sum_C += C[i];
         }
         cout << "Cannon's sum_C = " << sum_C << endl;    
