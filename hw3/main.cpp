@@ -1,6 +1,7 @@
 #include <iostream>
 #include "functions.h"
 #include <random>
+#include "mpi.h"
 
 using namespace std;
 
@@ -28,18 +29,37 @@ int main(int arc, char* argv[]){
     bool display_A = false;
     bool display_B = false;
     bool display_C = false;
+   
+    
+    // Initialize mpi environment
+    MPI_Init(NULL, NULL);
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size); 
+    MPI_Status status;
+    MPI_Barrier(MPI_COMM_WORLD);
+
 
     // Serial
     matmul_naive(n, C, A, B);
-    reset(n, C);
+    if(rank == 0){
+        reset(n, C);
+    }
 
     // SUMMA
-    summa(n, C, A, B, verbose, display_A, display_B, display_C); 
-    reset(n, C);
+    summa(n, rank, size C, A, B, verbose, display_A, display_B, display_C); 
+    if(rank == 0){
+        reset(n, C);
+    }
 
     // Cannon's
-    cannon(n, C, A, B, verbose, display_A, display_B, display_C);
-    reset(n, C);
+    cannon(n, rank, size, C, A, B, verbose, display_A, display_B, display_C);
+    if(rank == 0){
+        reset(n, C);
+    }
+
+    // Kill mpi environment
+    MPI_Finalize();
 
     delete[] A;
     delete[] B;

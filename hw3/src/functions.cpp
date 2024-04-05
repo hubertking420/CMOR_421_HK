@@ -31,14 +31,7 @@ void matmul_naive(int n, double* C, double* A, double* B){
     cout << "Serial elapsed time = " << elapsed_serial.count()*1000 << endl;
 }
 
-void summa(int n, double *C, double *A, double *B, bool verbose, bool display_A, bool display_B, bool display_C){
-    MPI_Init(NULL, NULL);
-    int rank, size;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size); 
-    MPI_Status status;
-    MPI_Barrier(MPI_COMM_WORLD);
-
+void summa(int n, int rank, int size, double *C, double *A, double *B, bool verbose, bool display_A, bool display_B, bool display_C){
     // Start time
     double start = MPI_Wtime();
 
@@ -208,17 +201,9 @@ void summa(int n, double *C, double *A, double *B, bool verbose, bool display_A,
     delete[] A_ij;
     delete[] B_ij;
     delete[] C_ij; 
-    MPI_Finalize();
 }
 
-void cannon(int n, double *C, double *A, double *B, bool verbose, bool display_A, bool display_B, bool display_C){
-    MPI_Init(NULL, NULL);
-    int rank, size;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size); 
-    MPI_Status status;
-    MPI_Barrier(MPI_COMM_WORLD);
-
+void cannon(int n, int rank, int size, double *C, double *A, double *B, bool verbose, bool display_A, bool display_B, bool display_C){
     // Start time
     double start = MPI_Wtime();
 
