@@ -1,4 +1,4 @@
-CMOR 421: High Performance Computing
+# CMOR 421: High Performance Computing
 
 3/21/2024
 Creating interactive node with 24 CPUs:
