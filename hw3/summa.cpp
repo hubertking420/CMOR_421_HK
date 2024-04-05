@@ -50,11 +50,15 @@ int main(int arc, char* argv[]){
     }
 
     // SUMMA
-    summa(n, rank, size, C_2, A, B, verbose, display_A, display_B, display_C); 
-
-    if(rank == 0 && check_equal(n, C_1, C_2)){
-        cout << "Serial product and SUMMA product are equal to machine precision." << endl;
+    summa(n, rank, size, C_2, A, B, verbose, display_A, display_B, display_C);
+    if(rank == 0){
+        if(check_equal(n, C_1, C_2)){
+            cout << "Serial product and SUMMA product are equal to machine precision." << endl;
+        } else{
+            cout << "Serial product and SUMMA product not equal."
+        }
     }
+
 
     // Kill mpi environment
     MPI_Finalize();
