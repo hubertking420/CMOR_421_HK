@@ -392,3 +392,13 @@ void reset(int n, double *C){
         C[i] = 0.0;
     }
 }
+
+bool check_equal(int n, double *C_1, double *C_2) {
+    double epsilon = 1e-9;
+    for (int i = 0; i < n*n; ++i) {
+        if (std::abs(C_1[i] - C_2[i]) > epsilon) {
+            return false;
+        }
+    }
+    return true;
+}

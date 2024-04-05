@@ -23,7 +23,8 @@ int main(int arc, char* argv[]){
     // make A, B = random
     double *A = new double[n*n];
     double *B = new double[n*n];
-    double *C = new double[n*n];    
+    double *C_1 = new double[n*n];    
+    double *C_2 = new double[n*n];    
     random_device rd;
     default_random_engine eng(rd());
     uniform_real_distribution<double> distr(0.0, 10.0);
@@ -32,7 +33,8 @@ int main(int arc, char* argv[]){
         B[i] = distr(eng);
     }
     for(int i = 0; i < n*n; ++i){
-        C[i] = 0.0;
+        C_1[i] = 0.0;
+        C_2[i] = 0.0;
     } 
 
 
@@ -44,19 +46,19 @@ int main(int arc, char* argv[]){
     
     // Serial
     if(rank == 0){
-        matmul_naive(n, C, A, B);
-        reset(n, C);
+        matmul_naive(n, C_1, A, B);
     }
 
     // SUMMA
-    summa(n, rank, size, C, A, B, verbose, display_A, display_B, display_C); 
+    summa(n, rank, size, C_2, A, B, verbose, display_A, display_B, display_C); 
 
     // Kill mpi environment
     MPI_Finalize();
 
     delete[] A;
     delete[] B;
-    delete[] C;  
+    delete[] C_1; 
+    delete[] C_2;
   
     return 0;
 }
