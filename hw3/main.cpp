@@ -6,31 +6,6 @@
 using namespace std;
 
 int main(int arc, char* argv[]){ 
-    int n = atoi(argv[1]);
-    int num_trials = 5;
-    cout << "Matrix size n = " << n << endl;
-
-    // make A, B = random
-    double * A = new double[n * n];
-    double * B = new double[n * n];
-    double * C = new double[n * n];    
-    random_device rd;
-    default_random_engine eng(rd());
-    uniform_real_distribution<double> distr(0.0, 10.0);
-    for (int i = 0; i < n; ++i){
-        A[i + i * n] = distr(eng);
-        B[i + i * n] = distr(eng);
-    }
-    for (int i = 0; i < n * n; ++i){
-        C[i] = 0.0;
-    }
-
-    bool verbose = false;
-    bool display_A = false;
-    bool display_B = false;
-    bool display_C = false;
-   
-    
     // Initialize mpi environment
     MPI_Init(NULL, NULL);
     int rank, size;
@@ -39,7 +14,34 @@ int main(int arc, char* argv[]){
     MPI_Status status;
     MPI_Barrier(MPI_COMM_WORLD);
 
+    int n = atoi(argv[1]);
+    int num_trials = 5;
+    cout << "Matrix size n = " << n << endl;
 
+    if(rank == 0){
+        // make A, B = random
+        double * A = new double[n * n];
+        double * B = new double[n * n];
+        double * C = new double[n * n];    
+        random_device rd;
+        default_random_engine eng(rd());
+        uniform_real_distribution<double> distr(0.0, 10.0);
+        for (int i = 0; i < n; ++i){
+            A[i + i * n] = distr(eng);
+            B[i + i * n] = distr(eng);
+        }
+        for (int i = 0; i < n * n; ++i){
+            C[i] = 0.0;
+        } 
+    }
+
+
+    bool verbose = false;
+    bool display_A = false;
+    bool display_B = false;
+    bool display_C = false;
+   
+    
     // Serial
     matmul_naive(n, C, A, B);
     if(rank == 0){
@@ -47,7 +49,7 @@ int main(int arc, char* argv[]){
     }
 
     // SUMMA
-    summa(n, rank, size C, A, B, verbose, display_A, display_B, display_C); 
+    summa(n, rank, size, C, A, B, verbose, display_A, display_B, display_C); 
     if(rank == 0){
         reset(n, C);
     }

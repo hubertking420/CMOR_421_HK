@@ -383,7 +383,6 @@ void cannon(int n, int rank, int size, double *C, double *A, double *B, bool ver
     delete[] A_ij;
     delete[] B_ij;
     delete[] C_ij; 
-    MPI_Finalize();
 }
 
 void reset(int n, double *C){
