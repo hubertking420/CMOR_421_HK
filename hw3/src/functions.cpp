@@ -27,7 +27,6 @@ void matmul_naive(int n, double* C, double* A, double* B){
     for(int i = 0; i < n*n; ++i){
         sum_C += C[i];
     }
-    cout << "Serial sum_C = " << sum_C << endl;
     cout << "Serial elapsed time = " << elapsed_serial.count()*1000 << endl;
 }
 
@@ -192,7 +191,6 @@ void summa(int n, int rank, int size, double *C, double *A, double *B, bool verb
         for (int i = 0; i < n * n; ++i){           
             sum_C += C[i];
         }
-        cout << "SUMMA sum_C = " << sum_C << endl;
         cout << "Elapsed time = " << elapsed << endl; 
     }
 
@@ -377,7 +375,6 @@ void cannon(int n, int rank, int size, double *C, double *A, double *B, bool ver
         for (int i = 0; i < n*n; ++i){           
             sum_C += C[i];
         }
-        cout << "Cannon's sum_C = " << sum_C << endl;    
         cout << "Elapsed time = " << elapsed << endl; 
     }
 
@@ -387,11 +384,6 @@ void cannon(int n, int rank, int size, double *C, double *A, double *B, bool ver
     delete[] C_ij; 
 }
 
-void reset(int n, double *C){
-    for(int i = 0; i < n*n; ++i){
-        C[i] = 0.0;
-    }
-}
 
 bool check_equal(int n, double *C_1, double *C_2) {
     double epsilon = 1e-9;
