@@ -85,6 +85,7 @@ void summa(int n, int rank, int size, double *C, double *A, double *B, bool verb
             }
         }
     }
+
     // Display the matrix B
     if(display_B){
         cout << "Parition of B on rank = " << rank << endl;
@@ -273,6 +274,7 @@ void cannon(int n, int rank, int size, double *C, double *A, double *B, bool ver
     // Map 2D coordinates (x, y) to 1D processor labels
     int x = rank / p;
     int y = rank % p;
+
     // Initial skew for A
     int origin_A = x * p + (y - x + p) % p; // Source rank for A submatrix
     int dest_A = x * p + (y + x) % p;       // Destination rank for A submatrix
@@ -364,7 +366,7 @@ void cannon(int n, int rank, int size, double *C, double *A, double *B, bool ver
         // Display the matrix C
         if(display_C){
             cout << "Matrix C:" << endl;
-            for (int i = 0; i < n * n; ++i){
+            for (int i = 0; i < n*n; ++i){
                 cout << C[i] << " ";
                 if((i+1) % n == 0){
                     cout << "\n";
@@ -372,7 +374,7 @@ void cannon(int n, int rank, int size, double *C, double *A, double *B, bool ver
             }
         }   
         double sum_C = 0.0;
-        for (int i = 0; i < n * n; ++i){           
+        for (int i = 0; i < n*n; ++i){           
             sum_C += C[i];
         }
         cout << "Cannon's sum_C = " << sum_C << endl;    
