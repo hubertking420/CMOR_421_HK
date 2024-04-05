@@ -386,9 +386,12 @@ void cannon(int n, int rank, int size, double *C, double *A, double *B, bool ver
 
 
 bool check_equal(int n, double *C_1, double *C_2) {
+    double tolerance = numeric_limits<double>::epsilon();
     double epsilon = 1e-9;
     for (int i = 0; i < n*n; ++i) {
-        if (std::abs(C_1[i] - C_2[i]) > epsilon) {
+        double diff = fabs(C_1[i]-C_2[i]);
+	    double denom = std::max(1.0, std::max(fabs(C_1[i]), fabs(C_2[i])));
+	    if(diff/denom > tolerance){
             return false;
         }
     }
