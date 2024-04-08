@@ -55,7 +55,7 @@ int main(int arc, char* argv[]){
         if(check_equal(n, C_1, C_2)){
             cout << "Serial product and Cannon's product are equal to machine precision." << endl;
         } else{
-            cout << "Serial product and Cannon's product not equal."
+            cout << "Serial product and Cannon's product not equal." << endl;
         }
     }
 
@@ -65,7 +65,8 @@ int main(int arc, char* argv[]){
 
     delete[] A;
     delete[] B;
-    delete[] C;  
+    delete[] C_1;
+    delete[] C_2;  
   
     return 0;
 }

@@ -55,7 +55,7 @@ int main(int arc, char* argv[]){
         if(check_equal(n, C_1, C_2)){
             cout << "Serial product and SUMMA product are equal to machine precision." << endl;
         } else{
-            cout << "Serial product and SUMMA product not equal."
+            cout << "Serial product and SUMMA product not equal." << endl;
         }
     }
 
