@@ -46,7 +46,7 @@ int main(int arc, char* argv[]){
     
     // Serial
     if(rank == 0){
-        matmul_naive(n, C_1, A, B);
+        matmul_naive(n, C_1, A, B, display_C);
     }
 
     // SUMMA

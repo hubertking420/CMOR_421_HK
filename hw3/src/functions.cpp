@@ -8,7 +8,7 @@
 using namespace std;
 using namespace std::chrono;
 
-void matmul_naive(int n, double* C, double* A, double* B){
+void matmul_naive(int n, double* C, double* A, double* B, bool display_C){
     high_resolution_clock::time_point start = high_resolution_clock::now(); 
     for (int i = 0; i < n; ++i){
         for (int j = 0; j < n; ++j){
@@ -23,6 +23,19 @@ void matmul_naive(int n, double* C, double* A, double* B){
     }
     high_resolution_clock::time_point end = high_resolution_clock::now();
     duration<double> elapsed_serial = end-start;
+    
+
+    // Display the matrix C
+    if(display_C){
+        cout << "Matrix C:" << endl;
+        for (int i = 0; i < n*n; ++i){
+            cout << C[i] << " ";
+            if((i+1) % n == 0){
+                cout << "\n";
+            }
+        }
+    }   
+    
     double sum_C = 0.0;
     for(int i = 0; i < n*n; ++i){
         sum_C += C[i];
