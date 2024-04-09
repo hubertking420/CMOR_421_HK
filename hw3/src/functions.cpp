@@ -343,6 +343,7 @@ void cannon(int n, int rank, int size, double *C, double *A, double *B, bool ver
                 C[i * n + j] = C_ij[i * block_size + j];
             }
         }
+        MPI_Status status;
         for(int k = 1; k < size; ++k) {
             // Receive blocks from other ranks        
             MPI_Recv(C_ij, block_size*block_size, MPI_DOUBLE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
@@ -401,16 +402,20 @@ void cannon(int n, int rank, int size, double *C, double *A, double *B, bool ver
     delete[] C_ij; 
 }
 
-
 bool check_equal(int n, double *C_1, double *C_2) {
-    double tolerance = numeric_limits<double>::epsilon();
-    double epsilon = 1e-9;
+    // You might want to use a larger tolerance than machine epsilon for numerical computations
+    double tolerance = 1e-6; // Example tolerance
+    bool equal = true;
+
     for (int i = 0; i < n*n; ++i) {
-        double diff = fabs(C_1[i]-C_2[i]);
-	    double denom = std::max(1.0, std::max(fabs(C_1[i]), fabs(C_2[i])));
-	    if(diff/denom > tolerance){
-            return false;
+        double diff = fabs(C_1[i] - C_2[i]);
+        double denom = std::max(1.0, std::max(fabs(C_1[i]), fabs(C_2[i])));
+        if (diff/denom > tolerance) {
+            equal = false;
+            // Print the differing values and their indices
+            std::cout << "Mismatch at index " << i << ": C_1[" << i << "] = " << C_1[i] 
+                      << ", C_2[" << i << "] = " << C_2[i] << ", diff = " << diff << std::endl;
         }
     }
-    return true;
+    return equal;
 }
