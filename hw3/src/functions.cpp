@@ -155,7 +155,7 @@ void summa(int n, int rank, int size, double *C, double *A, double *B, bool verb
 
     // Gather blocks of C onto root rank
     if(rank == 0) {
-        // Allocate space for the full matrix on rank 0
+        // Write in root rank partition
         for(int i = 0; i < block_size; ++i){
             for(int j = 0; j < block_size; ++j){
                 C[i * n + j] = C_ij[i * block_size + j];
@@ -234,7 +234,7 @@ void cannon(int n, int rank, int size, double *C, double *A, double *B, bool ver
 
     // Construct system on root rank
     if (rank == 0) {
-        for (int k = size-1; k > 0; --k) {
+        for (int k = size-1; k >= 0; --k) {
             // Calculate the starting indices for parition
             int row_start = (k/p)*block_size;
             int col_start = (k%p)*block_size;
@@ -260,7 +260,7 @@ void cannon(int n, int rank, int size, double *C, double *A, double *B, bool ver
 
     // Display the matrix A
     if(display_A){
-        cout << "Matrix A:" << endl;
+        cout << "Partition of A on rank = " << rank << endl;
         for (int i = 0; i < block_size*block_size; ++i){
             cout << A_ij[i] << " ";
             if((i+1) % block_size == 0){
@@ -270,7 +270,7 @@ void cannon(int n, int rank, int size, double *C, double *A, double *B, bool ver
     }
     // Display the matrix B
     if(display_B){
-        cout << "Matrix B:" << endl;
+        cout << "Partition of B on rank = " << rank << endl;
         for (int i = 0; i < block_size*block_size; ++i){
             cout << B_ij[i] << " ";
             if((i+1) % block_size == 0){
@@ -337,19 +337,20 @@ void cannon(int n, int rank, int size, double *C, double *A, double *B, bool ver
 
     // Gather blocks of C
     if(rank == 0) {
-        // Allocate space for the full matrix on rank 0
+        // Write in root rank partition
         for(int i = 0; i < block_size; ++i){
             for(int j = 0; j < block_size; ++j){
                 C[i * n + j] = C_ij[i * block_size + j];
             }
         }
         for(int k = 1; k < size; ++k) {
+            // Receive blocks from other ranks        
+            MPI_Recv(C_ij, block_size*block_size, MPI_DOUBLE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
+
             // Calculate the starting indices for parition of C
+            int origin_rank = status.MPI_SOURCE;
             int row_start_p = (k/p)*block_size;
             int col_start_p = (k%p)*block_size;
-
-            // Receive blocks from other ranks        
-            MPI_Recv(C_ij, block_size*block_size, MPI_DOUBLE, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
             // Place received data into C
             for(int i = 0; i < block_size; ++i){
