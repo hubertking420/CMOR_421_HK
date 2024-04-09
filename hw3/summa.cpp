@@ -29,8 +29,12 @@ int main(int arc, char* argv[]){
     default_random_engine eng(rd());
     uniform_real_distribution<double> distr(0.0, 10.0);
     for(int i = 0; i < n*n; ++i){
-        A[i] = distr(eng);
-        B[i] = distr(eng);
+        A[i] = 0.0;
+        B[i] = 0.0;
+    }
+    for(int i = 0; i < n; ++i){
+        A[i*n+i] += 1.0;
+        B[i*n+i] += 1.0;
     }
     for(int i = 0; i < n*n; ++i){
         C_1[i] = 0.0;
