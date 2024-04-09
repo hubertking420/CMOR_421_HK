@@ -7,4 +7,5 @@
 #SBATCH --time=00:30:00 
 echo "My job ran on:" 
 echo $SLURM_NODELIST 
-srun -n 2 ./a.out
+srun -n 4 cannon 1024
+srun -n 4 summa 1024
