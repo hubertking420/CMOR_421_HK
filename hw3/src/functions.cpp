@@ -61,7 +61,15 @@ void summa(int n, int rank, int size, double *C, double *A, double *B, bool verb
     double * B_recv = new double[block_size * block_size]; 
     // Construct system on root rank
     if (rank == 0) {
-        for (int k = size-1; k > 0; --k) {
+            // Place received data into C
+            for(int i = 0; i < block_size; ++i){
+                for(int j = 0; j < block_size; ++j){
+                    A_ij[i*block_size+j] = A[i*n+j];
+                    B_ij[i*block_size+j] = B[i*n+j];
+               }
+            }
+            for (int k = size-1; k > 0; --k) {
+            
             // Calculate the starting indices for parition of C
             int row_start = (k/p)*block_size;
             int col_start = (k%p)*block_size;
