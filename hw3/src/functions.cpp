@@ -401,8 +401,7 @@ void cannon(int n, int rank, int size, double *C, double *A, double *B, bool ver
 }
 
 bool check_equal(int n, double *C_1, double *C_2) {
-    // You might want to use a larger tolerance than machine epsilon for numerical computations
-    double tolerance = 1e-6; // Example tolerance
+    double tolerance = numeric_limits<double>::epsilon();
     bool equal = true;
 
     for (int i = 0; i < n*n; ++i) {
