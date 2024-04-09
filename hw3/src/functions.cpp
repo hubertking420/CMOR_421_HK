@@ -62,12 +62,11 @@ void summa(int n, int rank, int size, double *C, double *A, double *B, bool verb
     // Construct system on root rank
     if (rank == 0) {
         for (int k = size-1; k >= 0; --k) {
-            
             // Calculate the starting indices for parition of C
             int row_start = (k/p)*block_size;
             int col_start = (k%p)*block_size;
             
-            // Place received data into C
+            // Write in partitions
             for(int i = 0; i < block_size; ++i){
                 for(int j = 0; j < block_size; ++j){
                     A_ij[i*block_size+j] = A[(row_start+i)*n + (col_start+j)];
@@ -299,7 +298,6 @@ void cannon(int n, int rank, int size, double *C, double *A, double *B, bool ver
     int dest_B = ((x + y) % p) * p + y;       // Destination rank for B submatrix
     MPI_Sendrecv_replace(B_ij, block_size*block_size, MPI_DOUBLE, dest_B, 0, origin_B, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-
     // Progress check
     MPI_Barrier(MPI_COMM_WORLD);
     if(verbose){
@@ -350,8 +348,8 @@ void cannon(int n, int rank, int size, double *C, double *A, double *B, bool ver
 
             // Calculate the starting indices for parition of C
             int origin_rank = status.MPI_SOURCE;
-            int row_start_p = (k/p)*block_size;
-            int col_start_p = (k%p)*block_size;
+            int row_start_p = (origin_rank/p)*block_size;
+            int col_start_p = (origin_rank%p)*block_size;
 
             // Place received data into C
             for(int i = 0; i < block_size; ++i){
