@@ -41,7 +41,7 @@ int main(int arc, char* argv[]){
     bool verbose = false;
     bool display_A = false;
     bool display_B = false;
-    bool display_C = true;
+    bool display_C = false;
    
     
     // Serial

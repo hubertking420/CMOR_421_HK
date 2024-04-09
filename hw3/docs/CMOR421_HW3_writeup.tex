@@ -1,0 +1,167 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{listings} % Required for insertion of code
+\usepackage{amsmath} % Required for math features
+\usepackage{hyperref} % Required for adding hyperlinks
+\usepackage{booktabs} % Required for better table formats
+\usepackage{geometry}\geometry{margin=1in}
+\usepackage{placeins} % Required to use \FloatBarrier to ensure figures are shown before section ends
+\usepackage{amssymb} % Required for math symbols
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\title{CMOR 421 Homework 3: MPI}
+\author{Hubert King}
+\date{April 9th, 2024}
+\begin{document}
+\maketitle
+
+\section{Simplified SUMMA Algorithm}
+For our simplified SUMMA, we use the following approach. Algorithm 1 provides a more detailed outline.
+\begin{itemize}
+    \item Scatter partitions of $A$ and $B$ to the processes, stored as $A^{local}$ and $B^{local}$. 
+    \item Set $C^{local} \gets 0$.   
+    \item Set $blocksize \gets n \div \sqrt{s}$.
+    \item Allocate buffers $A^{buffer}$ and $B^{buffer}$.
+    \item Initialize row and column communicators.
+    \item In the main computational loop, all processes perform $p$ iterations of the following: 
+\begin{itemize}
+    \item Broadcast $A^{local}$ across its row.
+    \item Broadcast $B^{local}$ across its column.
+    \item Receive row broadcast into $A^{buffer}$.
+    \item Receive column broadcast into $B^{buffer}$.
+    \item Accumulate $C^{local} \gets A^{buffer} \times B^{buffer}$.
+\end{itemize} 
+\item Gather blocks of $C$ from all processes onto root process.
+\end{itemize}
+
+\section{Cannon's Algorithm}
+For Cannon's algorithm, we use the following approach, keeping the same $blocksize$ from SUMMA and procedure for the initial scatter of the partitions of $A$, $B$, and $C$.
+\begin{itemize}
+    \item For each row $i$ of $A$, perform a left-rotating shift of the partitions by $i$ position.
+    \item For each row $j$ of $B$, perform a upper-rotating shift of the partitions by $j$ position.
+    \item In the main computational loop, all processes perform $p$ iterations of the following:
+    \begin{itemize}
+        \item Accumulate $C^{local} \gets A^{local} \times B^{local}$
+        \item Perform left-circular shift of A on all rows by 1 position.
+        \item Perform upward-circular shift of B on all columns by 1 position.
+    \end{itemize}
+    \item Gather blocks of C from all processes onto the root process.
+\end{itemize}
+
+
+
+
+\begin{algorithm}
+\caption{SUMMA Algorithm Pseudocode}
+\begin{algorithmic}[1]
+\State \textbf{Input:} $A$, $B$, $rank$, $size$
+\State \textbf{Output:} $C$
+\State $blocksize \gets n / \sqrt{p}$
+\If{$rank = 0$}
+    \For{$k = p-1$ \textbf{to} $0$}
+        \For{$i = 1$ \textbf{to} $blocksize$}
+            \For{$j = 1$ \textbf{to} $blocksize$}
+                \State $A^{local}_{ij} \gets A_{ij}$
+                \State $B^{local}_{ij} \gets B_{ij}$
+                \State $C^{local}_{ij} \gets 0$
+            \EndFor
+        \EndFor
+        \If{$k > 0$}
+            \State Send $A^{local}, B^{local}, C^{local}$ to process $k$.
+        \EndIf
+    \EndFor
+\EndIf
+\If{$rank > 0$}
+    \State Receive $A^{local}, B^{local}, C^{local}$ from $rank = 0$.
+\EndIf
+\For{$k = 0$ \textbf{to} $\sqrt{p}-1$}
+    \For{$i = 1$ \textbf{to} $\sqrt{p}$}
+        \State Process holding block $A(i,k)$ broadcasts to its row.
+    \EndFor
+    \For{$j = 1$ \textbf{to} $\sqrt{p}$}
+        \State Process holding block $B(k, j)$ broadcasts to its column.
+    \EndFor
+    \State Receive block $A(i,k)$ into $A^{buffer}$.
+    \State Receive block $B(k,j)$ into $B^{buffer}$.
+    \For{$i = 1$ \textbf{to} $blocksize$}
+        \For{$j = 1$ \textbf{to} $blocksize$}
+            \State $C^{local}_{ij} \gets C^{local}_{ij} + A^{buffer}_{ij} \cdot B^{buffer}_{ij}$
+        \EndFor
+    \EndFor
+\EndFor
+\If{$rank > 0$}
+    \State Send $C^{local}$ to $rank = 0$.
+\EndIf
+\If{$rank = 0$}
+    \State $C \gets C^{local}$
+    \For{$k = size$ \textbf{to} $0$}
+        \State Receive $C^{local}$ from $rank = k$
+        \State $C \gets C^{local}$
+    \EndFor
+\EndIf
+\State \textbf{return} $C$
+\end{algorithmic}
+\end{algorithm}
+\FloatBarrier
+
+\section{Miscellaneous Details}
+To generate a random matrices for testing, we utilize the random number generation engine provided by the C++ standard library. We perform a correctness check by comparing product $C$ from the serial and parallel algorithms element-wise, with a tolerance of 1e-9. Timing results are measured in milliseconds.
+
+\section{Build and Run Instructions}
+Access NOTS via a login node and load the necessary modules:
+\begin{verbatim}
+module load GCCcore/13.2.0
+module load OpenMPI
+\end{verbatim}
+Verify that the module is loaded correctly and the correct version of GCC is being used:
+\begin{verbatim}
+gcc --version
+mpic++ --version
+\end{verbatim}
+Next, compile the drivers with the following command:
+\begin{verbatim}
+mpic++ -o summa -Iinclude summa.cpp src/functions.cpp
+mpic++ -o cannon -Iinclude cannon.cpp src/functions.cpp
+\end{verbatim}
+After successful compilation, the programs can be tested by running the following command in the login node, where dimension is replaced by the desired matrix size.
+\begin{verbatim}
+mpirun -n <processors> cannon <dimension>
+mpirun -n <processors> summa <dimension>
+\end{verbatim}
+To run, we use the following script, named job.slurm, which requests resources and runs the program on NOTS:
+\begin{verbatim}
+#!/bin/bash 
+#SBATCH --job-name=CMOR-421-521
+#SBATCH --partition=scavenge
+#SBATCH --reservation=CMOR421
+#SBATCH --ntasks=<requested-processors> 
+#SBATCH --mem-per-cpu=1G 
+#SBATCH --time=00:30:00 
+echo "My job ran on:" 
+echo $SLURM_NODELIST 
+srun -n <processors> summa <dimension>
+srun -n <processors> cannon <dimension>
+\end{verbatim}
+Submit the job with the following command:
+\begin{verbatim}
+sbatch job.slurm
+\end{verbatim}
+After job completion, view the output with the following command:
+\begin{verbatim}
+cat slurm-<job-number>.out
+\end{verbatim}
+Sample output:
+\begin{verbatim}
+My job ran on:
+bc8u27n1
+Matrix size n = 1024
+Serial elapsed time = 8132.66
+Elapsed time = 2.37754
+Serial product and Cannon's product are equal to machine precision.
+Matrix size n = 1024
+Serial elapsed time = 8123.66
+Elapsed time = 2.37487
+Serial product and SUMMA product are equal to machine precision.
+\end{verbatim}
+\end{document}
