@@ -5,6 +5,7 @@
 #define BLOCKSIZE 128
 
 __global__ void partial_reduction(const int N, float *x_reduced, const float *x){
+  
     __shared__ float s_x[BLOCKSIZE];
 
     const int i = blockDim.x * blockIdx.x + threadIdx.x;
@@ -25,7 +26,8 @@ __global__ void partial_reduction(const int N, float *x_reduced, const float *x)
         }
         s *= 2;
     }
-    // write out once we're done reducing each block
+
+      // write out once we're done reducing each block
     if (tid==0){
         x_reduced[blockIdx.x] = s_x[0];
     }
@@ -77,7 +79,7 @@ int main(int argc, char * argv[]){
     printf("error = %f\n", fabs(sum_x - target));
 
 #if 1
-    int num_trials = 10;
+      int num_trials = 10;
     float time;
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
@@ -93,6 +95,7 @@ int main(int argc, char * argv[]){
     cudaEventElapsedTime(&time, start, stop);
   
     printf("Time to run kernel 10x: %6.2f ms.\n", time);
+  
 #endif
 
     return 0;

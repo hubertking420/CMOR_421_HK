@@ -16,17 +16,8 @@ __global__ void partial_reduction(const int N, float *x_reduced, const float *x)
         s_x[tid] = x[i];
     }
 
-    // number of "live" threads per block
-    int alive = blockDim.x;
-  
-    while (alive > 1){
-        __syncthreads(); 
-        alive /= 2; // update the number of live threads    
-        if (tid < alive){
-        s_x[tid] += s_x[tid + alive];
-        }
-    }
-
+    // version 2 reduction algorithm
+    
     // write out once we're done reducing each block
     if (tid==0){
         x_reduced[blockIdx.x] = s_x[0];
