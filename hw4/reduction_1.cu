@@ -14,29 +14,31 @@ __global__ void partial_reduction(const int N, float *x_reduced, const float *x)
     // coalesced reads in
     s_x[tid] = 0.f;
     if (i < N){
-        s_x[tid] = x[i];
+      s_x[tid] = x[i];
     }
 
-    // version 0 reduction algorithm
-    int s = 1;
-    while(s <= blockDim.x/2){
-        __syncthreads();
-        if(tid % (2*s) == 0){
-            s_x[tid] += s_x[tid+s];
-        }
-        s *= 2;
+    // number of "live" threads per block
+    int alive = blockDim.x;
+  
+    while (alive > 1){
+      __syncthreads(); 
+      alive /= 2; // update the number of live threads    
+      if (tid < alive){
+        s_x[tid] += s_x[tid + alive];
+      }
     }
 
-      // write out once we're done reducing each block
+    // write out once we're done reducing each block
     if (tid==0){
-        x_reduced[blockIdx.x] = s_x[0];
+      x_reduced[blockIdx.x] = s_x[0];
     }
 }
     
 int main(int argc, char * argv[]){
-    int N = 4096;
+
+    long N = 4096;
     if (argc > 1){
-        N = atoi(argv[1]);
+      N = atoi(argv[1]);
     }
 
     int blockSize = BLOCKSIZE;
@@ -50,7 +52,7 @@ int main(int argc, char * argv[]){
     float * x_reduced = new float[numBlocks];  
 
     for (int i = 0; i < N; ++i){
-        x[i] = i + 1.f;
+      x[i] = i + 1.f;
     }
 
     // allocate memory and copy to the GPU
@@ -72,14 +74,14 @@ int main(int argc, char * argv[]){
 
     float sum_x = 0.f;
     for (int i = 0; i < numBlocks; ++i){
-        sum_x += x_reduced[i];
+      sum_x += x_reduced[i];
     }
 
     float target = N * (N+1) / 2.f;
     printf("error = %f\n", fabs(sum_x - target));
 
 #if 1
-      int num_trials = 10;
+    int num_trials = 10;
     float time;
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
@@ -87,7 +89,7 @@ int main(int argc, char * argv[]){
     cudaEventRecord(start, 0);
 
     for (int i = 0; i < num_trials; ++i){
-        partial_reduction <<< numBlocks, blockSize >>> (N, d_x_reduced, d_x);
+      partial_reduction <<< numBlocks, blockSize >>> (N, d_x_reduced, d_x);
     }
 
     cudaEventRecord(stop, 0);
