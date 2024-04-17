@@ -4,34 +4,8 @@
 
 #define BLOCKSIZE 128
 
-__global__ void partial_reduction(const int N, float *x_reduced, const float *x){
-  
-  __shared__ float s_x[BLOCKSIZE];
-
-  const int i = blockDim.x * blockIdx.x + threadIdx.x;
-  const int tid = threadIdx.x;
-  
-  // coalesced reads in
-  s_x[tid] = 0.f;
-  if (i < N){
-    s_x[tid] = x[i];
-  }
-
-  // number of "live" threads per block
-  int alive = blockDim.x;
-  
-  while (alive > 1){
-    __syncthreads(); 
-    alive /= 2; // update the number of live threads    
-    if (tid < alive){
-      s_x[tid] += s_x[tid + alive];
-    }
-  }
-
-  // write out once we're done reducing each block
-  if (tid==0){
-    x_reduced[blockIdx.x] = s_x[0];
-  }
+__global__ void stencil_global(const int N, float *x_reduced, const float *x){
+ 
 }
     
 int main(int argc, char * argv[]){
@@ -67,7 +41,7 @@ int main(int argc, char * argv[]){
     cudaMemcpy(d_x, x, size_x, cudaMemcpyHostToDevice);
     cudaMemcpy(d_x_reduced, x_reduced, size_x_reduced, cudaMemcpyHostToDevice);
 
-    partial_reduction <<< numBlocks, blockSize >>> (N, d_x_reduced, d_x);
+    stencil_global <<< numBlocks, blockSize >>> (N, d_x_reduced, d_x);
 
     // copy memory back to the CPU
     cudaMemcpy(x_reduced, d_x_reduced, size_x_reduced, cudaMemcpyDeviceToHost);
@@ -77,6 +51,7 @@ int main(int argc, char * argv[]){
       sum_x += x_reduced[i];
     }
 
+    // compute target for stencil
     float target = N * (N+1) / 2.f;
     printf("error = %f\n", fabs(sum_x - target));
 
@@ -89,7 +64,7 @@ int main(int argc, char * argv[]){
   cudaEventRecord(start, 0);
 
   for (int i = 0; i < num_trials; ++i){
-    partial_reduction <<< numBlocks, blockSize >>> (N, d_x_reduced, d_x);
+    stencil_global <<< numBlocks, blockSize >>> (N, d_x_reduced, d_x);
   }
 
   cudaEventRecord(stop, 0);

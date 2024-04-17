@@ -5,31 +5,33 @@
 #define BLOCKSIZE 128
 
 __global__ void partial_reduction(const int N, float *x_reduced, const float *x){
-  
     __shared__ float s_x[BLOCKSIZE/2];
-
     const int i = blockDim.x * blockIdx.x + threadIdx.x;
     const int tid = threadIdx.x;
   
     // coalesced reads in
     s_x[tid] = 0.f;
-    if (i < N){
-        s_x[tid] = x[i]+x[i+BLOCKSIZE/2];
+    if (i < N/2){  // Adjusted to prevent out-of-bounds access
+        int index1 = 2*i;
+        int index2 = 2*i+1;
+        s_x[tid] = x[index1] + x[index2];
     }
 
+    __syncthreads(); // Ensure all threads have written their sums to shared memory
+    
     // number of "live" threads per block
     int alive = blockDim.x/2;
   
     while (alive > 1){
-        __syncthreads(); 
-        alive /= 2; // update the number of live threads    
-        if (tid < alive){
-            s_x[tid] += s_x[tid + alive];
-        }
+      __syncthreads(); 
+      alive /= 2; // update the number of live threads    
+      if (tid < alive){
+        s_x[tid] += s_x[tid + alive];
+      }
     }
 
-    // write out once we're done reducing each block
-    if (tid==0){
+    // Write the result for this block to global memory
+    if (tid == 0){
         x_reduced[blockIdx.x] = s_x[0];
     }
 }
