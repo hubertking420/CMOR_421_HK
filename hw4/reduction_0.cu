@@ -17,6 +17,8 @@ __global__ void partial_reduction(const int N, float *x_reduced, const float *x)
         s_x[tid] = x[i];
     }
 
+    __syncthreads();
+
     // version 0 reduction algorithm
     int s = 1;
     while(s <= blockDim.x/2){
