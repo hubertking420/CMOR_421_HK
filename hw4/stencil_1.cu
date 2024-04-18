@@ -16,7 +16,7 @@ __global__ void stencil_global(const float *x, float *y, int N, long bc_initial,
     return;
   }
   // Interior elements
-  else{
+  else if(i>0 && i<N-1){
     y[i] = 2*x[i]-x[i-1]-x[i+1];
   }
 }
@@ -46,6 +46,7 @@ int main(int argc, char * argv[]){
     if(i==0) x[i]=bc_initial;
     else if(i==N-1) x[i]=bc_final;
     else x[i] = 10.f;
+    y[i] = 0.f;
   }
 
   // allocate memory and copy to the GPU
@@ -60,7 +61,7 @@ int main(int argc, char * argv[]){
   cudaMemcpy(d_x, x, size_x, cudaMemcpyHostToDevice);
   cudaMemcpy(d_y, y, size_y, cudaMemcpyHostToDevice);
 
-  stencil_global <<< numBlocks, blockSize >>> (x, y, N, bc_initial, bc_final);
+  stencil_global <<< numBlocks, blockSize >>> (d_x, d_y, N, bc_initial, bc_final);
 
   // copy memory back to the CPU
   cudaMemcpy(y, d_y, size_y, cudaMemcpyDeviceToHost);
@@ -83,7 +84,7 @@ int main(int argc, char * argv[]){
   cudaEventRecord(start, 0);
 
   for (int i = 0; i < num_trials; ++i){
-    stencil_global <<< numBlocks, blockSize >>> (x, y, N, initial, final);
+    stencil_global <<< numBlocks, blockSize >>> (d_x, d_y, N, initial, final);
   }
 
   cudaEventRecord(stop, 0);
