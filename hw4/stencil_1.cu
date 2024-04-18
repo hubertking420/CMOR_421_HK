@@ -29,7 +29,6 @@ void check(const float *x, float *y_target, float *y, int N) {
     }
 }
 
-
 __global__ void stencil_global(const float *x, float *y, int N, float bc_initial, float bc_final){
   const int i = blockDim.x * blockIdx.x + threadIdx.x;
   y[i]=0.f;
