@@ -4,7 +4,7 @@
 
 #define BLOCKSIZE 128
 
-__global__ void stencil_global(const float *x, float *y, int N, long bc_initial, long bc_final){
+__global__ void stencil_global(const float *x, float *y, int N, float bc_initial, float bc_final){
   const int i = blockDim.x * blockIdx.x + threadIdx.x;
   y[i]=0.f;
 
