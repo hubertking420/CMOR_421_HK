@@ -22,7 +22,7 @@ __global__ void partial_reduction(const int N, float *x_reduced, const float *x)
     __syncthreads(); // Ensure all threads have written their sums to shared memory
     
     // number of "live" threads per block
-    int alive = blockDim.x/2;
+    int alive = blockDim.x;
   
     // while (alive > 1){
     //   __syncthreads(); 
@@ -34,7 +34,7 @@ __global__ void partial_reduction(const int N, float *x_reduced, const float *x)
     // Perform the reduction in shared memory
     for (unsigned int s = 1; s < blockDim.x; s *= 2) {
         if (tid % (2 * s) == 0) {
-            sdata[tid] += sdata[tid + s];
+            s_x[tid] += s_x[tid + s];
         }
         __syncthreads();
     }
