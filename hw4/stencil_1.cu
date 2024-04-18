@@ -11,12 +11,14 @@ __global__ void stencil_global(const float *x, float *y, int N, long bc_initial,
     y[i] = bc_initial;
     return;
   }
-  if(i == N-1){
+  else if(i == N-1){
     y[i] = bc_final;
     return;
   }
   // Interior elements
-  y[i] = 2*x[i]-x[i-1]-x[i+1];
+  else{
+    y[i] = 2*x[i]-x[i-1]-x[i+1];
+  }
 }
     
 int main(int argc, char * argv[]){
@@ -58,7 +60,7 @@ int main(int argc, char * argv[]){
   cudaMemcpy(d_x, x, size_x, cudaMemcpyHostToDevice);
   cudaMemcpy(d_y, y, size_y, cudaMemcpyHostToDevice);
 
-  stencil_global <<< numBlocks, blockSize >>> (x, y, N, bc_initial, bc_:wfinal);
+  stencil_global <<< numBlocks, blockSize >>> (x, y, N, bc_initial, bc_final);
 
   // copy memory back to the CPU
   cudaMemcpy(y, d_y, size_y, cudaMemcpyDeviceToHost);
@@ -69,7 +71,7 @@ int main(int argc, char * argv[]){
     sum_y += y[i];
   }
   // Compute target for stencil and check for accuracy
-  float target = x[0]+x[N-1];
+  float target = bc_initial+bc_final;
   printf("error = %f\n", fabs(sum_y - target));
 
 #if 0
