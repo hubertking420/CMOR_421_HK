@@ -17,20 +17,20 @@ __global__ void stencil_global(const float *x, float *y, int N, float bc_initial
 
   // Load initial value or last element from previous block
   if(tid==0){
-    if(blockIDx.x == 0){
+    if(blockIdx.x == 0){
       s_x[0] = bc_initial;
     }
-    else if(blockIDx.x > 0){
+    else if(blockIdx.x > 0){
       s_x[0] = x[i-1];
     }
   }
 
   // Load final value or first element from next block
   if(tid==blockDim.x-1){
-    if(blockIDx.x==blockDim.x-1){
+    if(blockIdx.x==blockDim.x-1){
       s_x[blockDim.x-1] = bc_final;
     }
-    else if(blockIDx.x<blockDim.x-1){
+    else if(blockIdx.x<blockDim.x-1){
       s_x[0] = x[i+1];
     }
   }
