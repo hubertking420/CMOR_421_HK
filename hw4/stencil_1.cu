@@ -6,17 +6,21 @@
 
 __global__ void stencil_global(const float *x, float *y, int N, long bc_initial, long bc_final){
   const int i = blockDim.x * blockIdx.x + threadIdx.x;
+  y[i]=0.f;
+
   // Boundary conditions
   if(i == 0){
     y[i] = bc_initial;
-    return;
   }
-  else if(i == N-1){
+  if(i == N-1){
     y[i] = bc_final;
-    return;
   }
+  
+  // Rest of stencil relies on BCs being applied
+  __syncthreads();
+
   // Interior elements
-  else if(i>0 && i<N-1){
+  if(i>0 && i<N-1){
     y[i] = 2*x[i]-x[i-1]-x[i+1];
   }
 }
@@ -46,7 +50,6 @@ int main(int argc, char * argv[]){
     if(i==0) x[i]=bc_initial;
     else if(i==N-1) x[i]=bc_final;
     else x[i] = 10.f;
-    y[i] = 0.f;
   }
 
   // allocate memory and copy to the GPU
