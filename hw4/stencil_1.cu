@@ -4,7 +4,7 @@
 
 #define BLOCKSIZE 128
 
-__global__ void stencil_global(const float *x, const float *y, int N, long bc_initial, long bc_final){
+__global__ void stencil_global(const float *x, float *y, int N, long bc_initial, long bc_final){
   const int i = blockDim.x * blockIdx.x + threadIdx.x;
   // Boundary conditions
   if(i == 0){
@@ -59,7 +59,12 @@ int main(int argc, char * argv[]){
 
   // copy memory back to the CPU
   cudaMemcpy(y, d_y, size_y, cudaMemcpyDeviceToHost);
-    
+
+  // Sum up the values
+  float sum_y = 0.f;
+  for(int i = 0; i < N; ++i){
+    sum_y += y[i];
+  }
   // Compute target for stencil and check for accuracy
   float target = x[0]+x[N-1];
   printf("error = %f\n", fabs(sum_x - target));
