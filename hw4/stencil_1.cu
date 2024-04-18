@@ -3,26 +3,33 @@
 #include <cuda_runtime.h>
 
 #define BLOCKSIZE 128
-void check(const float *x, float *y_target, float *y, int N){
-  // compute solution
-  for(int i = 1; i < N-1; ++i){
-    y_target[i] = 2*x[i]-x[i-1]+x[i+1];
-  }
-  y_target[0] = x[0];
-  y_target[N] = x[N];
+void check(const float *x, float *y_target, float *y, int N) {
+    // Compute solution
+    y_target[0] = x[0]; // Assuming some boundary condition or direct assignment
+    y_target[N-1] = x[N-1]; // Assuming some boundary condition or direct assignment
+    for (int i = 1; i < N-1; ++i) {
+        y_target[i] = 2*x[i] - x[i-1] - x[i+1];
+    }
 
-  // check element wise
-  for(int i = 1; i < N-1; ++i){
-    tol = 1e-9;
-    float diff = fabs(y[i]-y_target[i]);
-    if(diff<tol){ 
-      printf("y is not accurate to machine precision.");
-      printf("incorrect element = %f\n", y[i]);
-      printf("correct element = %f\n", y_final[i]);
-      return;
-    }  
-  }
+    // Check element-wise
+    bool isCorrect = true;
+    float tol = 1e-9;
+    for (int i = 0; i < N; ++i) {
+        float diff = fabs(y[i] - y_target[i]);
+        if (diff >= tol) {
+            printf("y is not accurate to machine precision.\n");
+            printf("At index %d, incorrect element = %f, correct element = %f\n", i, y[i], y_target[i]);
+            isCorrect = false;
+            break; // Exiting early on first error
+        }
+    }
+
+    if (isCorrect) {
+        printf("y is accurate to machine precision.\n");
+    }
 }
+
+
 __global__ void stencil_global(const float *x, float *y, int N, float bc_initial, float bc_final){
   const int i = blockDim.x * blockIdx.x + threadIdx.x;
   y[i]=0.f;
