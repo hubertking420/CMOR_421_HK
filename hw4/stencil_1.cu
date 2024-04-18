@@ -81,22 +81,15 @@ int main(int argc, char * argv[]){
   // allocate memory and copy to the GPU
   float * d_x;
   float * d_y;  
-  float * d_bc_initial;
-  float * d_bc_final;
   int size_x = N * sizeof(float);
   int size_y = N * sizeof(float);
   cudaMalloc((void **) &d_x, size_x);
   cudaMalloc((void **) &d_y, size_y);
-  cudaMalloc((void **) &d_bc_initial, sizeof(float));
-  cudaMalloc((void **) &d_bc_final, sizeof(float));
-  // copy memory over to the GPU
-  cudaMemcpy(d_x, x, size_x, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_y, y, size_y, cudaMemcpyHostToDevice);
-  cudaMemcpy(d_bc_initial, bc_initial, sizeof(float), cudaMemcpyHostToDevice);
-  cudaMemcpy(d_bc_final, bc_final, sizeof(float), cudaMemcpyHostToDevice);
- 
   
-  stencil_global <<< numBlocks, blockSize >>> (d_x, d_y, N, d_bc_initial, d_bc_final);
+  // copy memory over to the GPU
+  cudaMemcpy(d_y, y, size_y, cudaMemcpyHostToDevice);
+
+  stencil_global <<< numBlocks, blockSize >>> (d_x, d_y, N, bc_initial, bc_final);
 
   // copy memory back to the CPU
   cudaMemcpy(y, d_y, size_y, cudaMemcpyDeviceToHost);
