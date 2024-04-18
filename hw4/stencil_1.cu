@@ -3,7 +3,7 @@
 #include <cuda_runtime.h>
 
 #define BLOCKSIZE 128
-void check(int N, const float *A, float *x, float *y, float *y_target) {
+void check(int N, const float *A, float *x, float *y, float *y_target, float bc_initial, float bc_final) {
     // Perform matrix-vector multiplication
     for (int i = 0; i < N; ++i) {
         float sum = 0.0f;  // Initialize the sum for the i-th element of y
@@ -12,6 +12,8 @@ void check(int N, const float *A, float *x, float *y, float *y_target) {
         }
         y_target[i] = sum;  // Store the result in y_target
     }
+    y_target[0] = bc_initial;
+    y_target[N-1] = bc_final;
 
     // Check element-wise for accuracy
     bool isCorrect = true;
@@ -40,8 +42,8 @@ __global__ void stencil_global(int N, const float *A, float *x, float *y, float 
     }
     y[i] = val;
   }
-  if(i==0) y[i] += bc_initial;
-  else if(i==N-1) y[i] += bc_final;
+  if(i==0) y[i] = bc_initial;
+  else if(i==N-1) y[i] = bc_final;
 }
     
 int main(int argc, char * argv[]){
@@ -105,7 +107,7 @@ int main(int argc, char * argv[]){
   cudaMemcpy(y, d_y, size_y, cudaMemcpyDeviceToHost);
   
   // Compute target for stencil and check for accuracy
-  check(N, A, x, y, y_target);
+  check(N, A, x, y, y_target, bc_initial, bc_final);
 
 #if 0
   int num_trials = 10;
