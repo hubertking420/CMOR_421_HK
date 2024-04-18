@@ -3,51 +3,45 @@
 #include <cuda_runtime.h>
 
 #define BLOCKSIZE 128
-void check(const float *x, float *y_target, float *y, int N) {
-    // Compute solution
-    y_target[0] = x[0]; // Assuming some boundary condition or direct assignment
-    y_target[N-1] = x[N-1]; // Assuming some boundary condition or direct assignment
-    for (int i = 1; i < N-1; ++i) {
-        y_target[i] = 2*x[i] - x[i-1] - x[i+1];
+void check(int N, const float *A, float *x, float *y, float *y_target) {
+    // Perform matrix-vector multiplication
+    for (int i = 0; i < N; ++i) {
+        float sum = 0.0f;  // Initialize the sum for the i-th element of y
+        for (int j = 0; j < N; ++j) {
+            sum += A[i * N + j] * x[j];  // Accumulate the dot product of the i-th row of A and x
+        }
+        y_target[i] = sum;  // Store the result in y_target
     }
 
-    // Check element-wise
+    // Check element-wise for accuracy
     bool isCorrect = true;
     float tol = 1e-9;
     for (int i = 0; i < N; ++i) {
-        float diff = fabs(y[i] - y_target[i]);
-        if (diff >= tol) {
+        float diff = fabs(y[i] - y_target[i]);  // Calculate the difference between computed and target
+        if (diff >= tol) {  // If the difference exceeds the tolerance, the result is incorrect
             printf("y is not accurate to machine precision.\n");
             printf("At index %d, incorrect element = %f, correct element = %f\n", i, y[i], y_target[i]);
             isCorrect = false;
-            break; // Exiting early on first error
+            break;  // Exit early on the first error
         }
     }
-
     if (isCorrect) {
         printf("y is accurate to machine precision.\n");
     }
 }
 
-__global__ void stencil_global(const float *x, float *y, int N, float bc_initial, float bc_final){
+
+__global__ void stencil_global(int N, const float *A, float *x, float *y, float bc_initial, float bc_final){
   const int i = blockDim.x * blockIdx.x + threadIdx.x;
-  y[i]=0.f;
-
-  // Boundary conditions
-  if(i == 0){
-    y[i] = bc_initial;
+  if (i < N){
+    float val = y[i];
+    for (int j = 0; j < N; ++j){
+      val += A[i + j * N] * x[j];  // coalesced
+    }
+    y[i] = val;
   }
-  if(i == N-1){
-    y[i] = bc_final;
-  }
-  
-  // Rest of stencil relies on BCs being applied
-  __syncthreads();
-
-  // Interior elements
-  if(i>0 && i<N-1){
-    y[i] = 2*x[i]-x[i-1]-x[i+1];
-  }
+  if(i==0) y[i] += bc_initial;
+  else if(i==N-1) y[i] += bc_final;
 }
     
 int main(int argc, char * argv[]){
@@ -62,41 +56,56 @@ int main(int argc, char * argv[]){
   int numBlocks = (N + blockSize - 1) / blockSize;
 
   printf("N = %d, blockSize = %d, numBlocks = %d\n", N, blockSize, numBlocks);
-
+  
+  float * A = new float[N * N];
   float * x = new float[N];
-  float * y = new float[N];  
+  float * y = new float[N];
   float * y_target = new float[N];
+  for (int i = 0; i < N; ++i) {
+    // Initialize x and y
+    x[i] = 1.f;
+    y[i] = 0.f;    
+    y_target[i] = 0.f;
+    // Set indices for A
+    int main = i*N+i;
+    int super = i*N+(i+1);
+    int sub = i*N+(i-1);
+    // Set elements
+    A[main] = 2.f;
+    if (i < N - 1) {
+        A[sub] = -1.f; 
+    }
+    if (i > 0) {
+        A[super] = -1.f; 
+    }
+  } 
 
   // Define boundary conditions
   float bc_initial = 50.f;
   float bc_final = 50.f;
 
-  // Define x for the stencil
-  for (int i = 0; i < N; ++i){
-    if(i==0) x[i]=bc_initial;
-    else if(i==N-1) x[i]=bc_final;
-    else x[i] = 10.f;
-  }
-
   // allocate memory and copy to the GPU
+  float * d_A;
   float * d_x;
-  float * d_y;  
-  int size_x = N * sizeof(float);
-  int size_y = N * sizeof(float);
+  float * d_y;
+  int size_A = N*N*sizeof(float);  
+  int size_x = N*sizeof(float);
+  int size_y = N*sizeof(float);
   cudaMalloc((void **) &d_x, size_x);
   cudaMalloc((void **) &d_y, size_y);
+  cudaMalloc((void **) &d_A, size_A);
   
   // copy memory over to the GPU
+  cudaMemcpy(d_A, A, size_A, cudaMemcpyHostToDevice);
+  cudaMemcpy(d_x, x, size_x, cudaMemcpyHostToDevice);
   cudaMemcpy(d_y, y, size_y, cudaMemcpyHostToDevice);
-
-  stencil_global <<< numBlocks, blockSize >>> (d_x, d_y, N, bc_initial, bc_final);
+  stencil_global <<< numBlocks, blockSize >>> (N, d_A, d_x, d_y, bc_initial, bc_final);
 
   // copy memory back to the CPU
   cudaMemcpy(y, d_y, size_y, cudaMemcpyDeviceToHost);
-
   
   // Compute target for stencil and check for accuracy
-  check(x, y, y_target, N);
+  check(N, A, x, y, y_target);
 
 #if 0
   int num_trials = 10;
@@ -107,8 +116,9 @@ int main(int argc, char * argv[]){
   cudaEventRecord(start, 0);
 
   for (int i = 0; i < num_trials; ++i){
-    stencil_global <<< numBlocks, blockSize >>> (d_x, d_y, N, initial, final);
+    stencil_global <<< numBlocks, blockSize >>> (N, A, x, y, bc_initial, bc_final);
   }
+
 
   cudaEventRecord(stop, 0);
   cudaEventSynchronize(stop);
