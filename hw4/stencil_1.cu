@@ -35,13 +35,16 @@ int main(int argc, char * argv[]){
   float * x = new float[N];
   float * y = new float[N];  
 
+  // Define boundary conditions
+  float bc_initial = 50.f;
+  float bc_final = 50.f;
+
   // Define x for the stencil
   for (int i = 0; i < N; ++i){
-      x[i] = 10.f;
+    if(i==0) x[i]=bc_initial;
+    else if(i==N-1) x[i]=bc_final;
+    else x[i] = 10.f;
   }
-  // Define boundary conditions
-  float initial = 0.f;
-  float final = 0.f;
 
   // allocate memory and copy to the GPU
   float * d_x;
@@ -55,7 +58,7 @@ int main(int argc, char * argv[]){
   cudaMemcpy(d_x, x, size_x, cudaMemcpyHostToDevice);
   cudaMemcpy(d_y, y, size_y, cudaMemcpyHostToDevice);
 
-  stencil_global <<< numBlocks, blockSize >>> (x, y, N, initial, final);
+  stencil_global <<< numBlocks, blockSize >>> (x, y, N, bc_initial, bc_:wfinal);
 
   // copy memory back to the CPU
   cudaMemcpy(y, d_y, size_y, cudaMemcpyDeviceToHost);
@@ -67,7 +70,7 @@ int main(int argc, char * argv[]){
   }
   // Compute target for stencil and check for accuracy
   float target = x[0]+x[N-1];
-  printf("error = %f\n", fabs(sum_x - target));
+  printf("error = %f\n", fabs(sum_y - target));
 
 #if 0
   int num_trials = 10;
