@@ -11,23 +11,32 @@ __global__ void partial_reduction(const int N, float *x_reduced, const float *x)
   
     // coalesced reads in
     s_x[tid] = 0.f;
-    if (i < N/2){  // Adjusted to prevent out-of-bounds access
-        int index1 = 2*i;
-        int index2 = 2*i+1;
-        s_x[tid] = x[index1] + x[index2];
+    if (i < N){  // Adjusted to prevent out-of-bounds access
+        sum = x[i];
+        if(i+blockDim.x < N){
+            sum += x[i+blockDim.x];
+        }        
     }
+    s_x[tid] = sum;
 
     __syncthreads(); // Ensure all threads have written their sums to shared memory
     
     // number of "live" threads per block
     int alive = blockDim.x/2;
   
-    while (alive > 1){
-      __syncthreads(); 
-      alive /= 2; // update the number of live threads    
-      if (tid < alive){
-        s_x[tid] += s_x[tid + alive];
-      }
+    // while (alive > 1){
+    //   __syncthreads(); 
+    //   alive /= 2; // update the number of live threads    
+    //   if (tid < alive){
+    //     s_x[tid] += s_x[tid + alive];
+    //   }
+    // }
+    // Perform the reduction in shared memory
+    for (unsigned int s = 1; s < blockDim.x; s *= 2) {
+        if (tid % (2 * s) == 0) {
+            sdata[tid] += sdata[tid + s];
+        }
+        __syncthreads();
     }
 
     // Write the result for this block to global memory
@@ -70,7 +79,7 @@ int main(int argc, char * argv[]){
     cudaMemcpy(d_x, x, size_x, cudaMemcpyHostToDevice);
     cudaMemcpy(d_x_reduced, x_reduced, size_x_reduced, cudaMemcpyHostToDevice);
 
-    partial_reduction <<< numBlocks, blockSize >>> (N, d_x_reduced, d_x);
+    partial_reduction <<< numBlocks, blockSize/2 >>> (N, d_x_reduced, d_x);
 
     // copy memory back to the CPU
     cudaMemcpy(x_reduced, d_x_reduced, size_x_reduced, cudaMemcpyDeviceToHost);
@@ -83,7 +92,7 @@ int main(int argc, char * argv[]){
     float target = N * (N+1) / 2.f;
     printf("error = %f\n", fabs(sum_x - target));
 
-#if 1
+#if 0
     int num_trials = 10;
     float time;
     cudaEvent_t start, stop;
