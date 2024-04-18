@@ -11,6 +11,7 @@ __global__ void partial_reduction(const int N, float *x_reduced, const float *x)
   
     // coalesced reads in
     s_x[tid] = 0.f;
+    float sum;
     if (i < N){  // Adjusted to prevent out-of-bounds access
         sum = x[i];
         if(i+blockDim.x < N){
@@ -21,8 +22,8 @@ __global__ void partial_reduction(const int N, float *x_reduced, const float *x)
 
     __syncthreads(); // Ensure all threads have written their sums to shared memory
     
-    // number of "live" threads per block
-    int alive = blockDim.x;
+    //// number of "live" threads per block
+    //int alive = blockDim.x;
   
     // while (alive > 1){
     //   __syncthreads(); 
