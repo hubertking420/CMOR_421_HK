@@ -21,7 +21,7 @@ __global__ void stencil_global(const float *x, float *y, int N){
 }
     
 int main(int argc, char * argv[]){
-  int N = 4096;
+  int N = 4194304;
   if (argc > 1){
     N = atoi(argv[1]);
   }

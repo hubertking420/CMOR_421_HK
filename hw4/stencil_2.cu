@@ -3,14 +3,14 @@
 #include <cuda_runtime.h>
 
 #define BLOCKSIZE 128
-__global__ void stencil_global(const float *x, float *y, int N){
+__global__ void stencil_shared(const float *x, float *y, int N){
   __shared__ float s_x[BLOCKSIZE+2];
   const int i = blockDim.x * blockIdx.x + threadIdx.x;
   const int tid = threadIdx.x; 
   const int local_index = tid+1; // shift indices over to leave room for left halo
 
   // Load interior data
-  s[local_index] = 0.f;
+  s_x[local_index] = 0.f;
   if(i<N){
     s_x[local_index] = x[i];
   }
@@ -45,7 +45,7 @@ __global__ void stencil_global(const float *x, float *y, int N){
 }
     
 int main(int argc, char * argv[]){
-  int N = 4096;
+  int N = 4194304;
   if (argc > 1){
     N = atoi(argv[1]);
   }
@@ -78,7 +78,7 @@ int main(int argc, char * argv[]){
   cudaMemcpy(d_x, x, size_x, cudaMemcpyHostToDevice);
   cudaMemcpy(d_y, y, size_y, cudaMemcpyHostToDevice);
 
-  stencil_global <<< numBlocks, blockSize+2 >>> (d_x, d_y, N);
+  stencil_shared <<< numBlocks, blockSize+2 >>> (d_x, d_y, N);
 
   // copy memory back to the CPU
   cudaMemcpy(y, d_y, size_y, cudaMemcpyDeviceToHost);
@@ -98,7 +98,7 @@ int main(int argc, char * argv[]){
   cudaEventRecord(start, 0);
 
   for (int i = 0; i < num_trials; ++i){
-    stencil_global <<< numBlocks, blockSize >>> (d_x, d_y, N);
+    stencil_shared <<< numBlocks, blockSize >>> (d_x, d_y, N);
   }
 
   cudaEventRecord(stop, 0);
