@@ -31,7 +31,7 @@ int main(int argc, char * argv[]){
   // Next largest multiple of blockSize
   int numBlocks = (N + blockSize - 1) / blockSize;
 
-  printf("N = %d, blockSize = %d, numBlocks = %d\n", N, blockSize, numBlocks);
+  printf("Stencil operation with N = %d, blockSize = %d, numBlocks = %d\n", N, blockSize, numBlocks);
 
   float * x = new float[N];
   float * y = new float[N];  

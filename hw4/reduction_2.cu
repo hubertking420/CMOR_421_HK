@@ -57,7 +57,7 @@ int main(int argc, char * argv[]){
     // Next largest multiple of blockSize
     int numBlocks = (N + blockSize - 1) / blockSize;
 
-    printf("N = %d, blockSize = %d, numBlocks = %d\n", N, blockSize, numBlocks);
+    printf("Reduction with N = %d, blockSize = %d, numBlocks = %d\n", N, blockSize, numBlocks);
 
     float * x = new float[N];
     float * x_reduced = new float[numBlocks];  
@@ -93,7 +93,7 @@ int main(int argc, char * argv[]){
     float target = N * (N+1) / 2.f;
     printf("error = %f\n", fabs(sum_x - target));
 
-#if 0
+#if 1
     int num_trials = 10;
     float time;
     cudaEvent_t start, stop;
