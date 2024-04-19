@@ -4,13 +4,37 @@
 
 #define BLOCKSIZE 128
 __global__ void stencil_global(const float *x, float *y, int N){
+  __shared__ float s_x[BLOCKSIZE+2];
   const int i = blockDim.x * blockIdx.x + threadIdx.x;
-  y[i]=0.f;
+  const int tid = threadIdx.x; 
+  const int local_index = tid+1; // shift indices over to leave room for left halo
+
+  // Load interior data
+  s[local_index] = 0.f;
+  if(i<N){
+    s_x[local_index] = x[i];
+  }
+
+  // Load left halo element if it exists
+  if(tid==0 && blockIdx.x>0){
+      s_x[0] = x[i-1];
+  }
+
+  // Load right halo element if it exists
+  if(tid==blockDim.x-1 && blockIdx.x<blockDim.x-1){
+      s_x[blockDim.x+1] = x[i+1];
+  }
+  
+  // Compute stencil
+  __syncthreads();
 
   // Interior elements
+  y[i]=0.f;
   if(i>0 && i<N-1){
-    y[i] = 2*x[i]-x[i-1]-x[i+1];
+    y[i] = 2*s_x[i]-s_x[i-1]-s_x[i+1];
   }
+
+  // Overall boundary elements
   __syncthreads();
   if(i == 0){
     y[i] = y[i+1];
@@ -54,7 +78,7 @@ int main(int argc, char * argv[]){
   cudaMemcpy(d_x, x, size_x, cudaMemcpyHostToDevice);
   cudaMemcpy(d_y, y, size_y, cudaMemcpyHostToDevice);
 
-  stencil_global <<< numBlocks, blockSize >>> (d_x, d_y, N);
+  stencil_global <<< numBlocks, blockSize+2 >>> (d_x, d_y, N);
 
   // copy memory back to the CPU
   cudaMemcpy(y, d_y, size_y, cudaMemcpyDeviceToHost);
