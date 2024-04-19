@@ -3,24 +3,25 @@
 #include <cuda_runtime.h>
 
 #define BLOCKSIZE 128
-
 __global__ void partial_reduction(const int N, float *x_reduced, const float *x){
     __shared__ float s_x[BLOCKSIZE];
-    const int i = blockDim.x * blockIdx.x + threadIdx.x;
     const int tid = threadIdx.x;
-  
-    // coalesced reads in
-    s_x[tid] = 0.f;
-    if (i < N){  // Adjusted to prevent out-of-bounds access
-        s_x[tid] = x[i]+x[i+blockDim.x];
+    const int i = blockDim.x * blockIdx.x + tid; // Index in the first half
+    const int j = N - 1 - tid - blockDim.x * blockIdx.x; // Index in the second half
+
+    // Load data into shared memory, ensuring we don't read out of bounds
+    s_x[tid] = (i < N) ? x[i] : 0.f;
+    if (j >= 0 && j < N) {
+        s_x[tid] += x[j];
     }
 
     __syncthreads(); // Ensure all threads have written their sums to shared memory
-   
+
     // Perform the reduction in shared memory
     for (unsigned int s = 1; s < blockDim.x; s *= 2) {
-        if (tid % (2 * s) == 0) {
-            s_x[tid] += s_x[tid + s];
+        int index = 2 * s * tid;
+        if (index < blockDim.x) {
+            s_x[index] += s_x[index + s];
         }
         __syncthreads();
     }
@@ -30,6 +31,33 @@ __global__ void partial_reduction(const int N, float *x_reduced, const float *x)
         x_reduced[blockIdx.x] = s_x[0];
     }
 }
+
+// __global__ void partial_reduction(const int N, float *x_reduced, const float *x){
+//     __shared__ float s_x[BLOCKSIZE];
+//     const int i = blockDim.x * blockIdx.x + threadIdx.x;
+//     const int tid = threadIdx.x;
+  
+//     // coalesced reads in
+//     s_x[tid] = 0.f;
+//     if (i < N){  
+//         s_x[tid] = x[i]+x[i+blockDim.x];
+//     }
+
+//     __syncthreads(); // Ensure all threads have written their sums to shared memory
+   
+//     // Perform the reduction in shared memory
+//     for (unsigned int s = 1; s < blockDim.x; s *= 2) {
+//         if (tid % (2 * s) == 0) {
+//             s_x[tid] += s_x[tid + s];
+//         }
+//         __syncthreads();
+//     }
+
+//     // Write the result for this block to global memory
+//     if (tid == 0){
+//         x_reduced[blockIdx.x] = s_x[0];
+//     }
+// }
     
 int main(int argc, char * argv[]){
     int N = 4096;
