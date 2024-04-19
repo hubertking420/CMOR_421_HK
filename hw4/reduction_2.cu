@@ -5,33 +5,18 @@
 #define BLOCKSIZE 128
 
 __global__ void partial_reduction(const int N, float *x_reduced, const float *x){
-    __shared__ float s_x[BLOCKSIZE/2];
+    __shared__ float s_x[BLOCKSIZE];
     const int i = blockDim.x * blockIdx.x + threadIdx.x;
     const int tid = threadIdx.x;
   
     // coalesced reads in
     s_x[tid] = 0.f;
-    float sum;
     if (i < N){  // Adjusted to prevent out-of-bounds access
-        sum = x[i];
-        if(i+blockDim.x < N){
-            sum += x[i+blockDim.x];
-        }        
+        s_x[tid] = x[i]+x[i+blockDim.x];
     }
-    s_x[tid] = sum;
 
     __syncthreads(); // Ensure all threads have written their sums to shared memory
-    
-    //// number of "live" threads per block
-    //int alive = blockDim.x;
-  
-    // while (alive > 1){
-    //   __syncthreads(); 
-    //   alive /= 2; // update the number of live threads    
-    //   if (tid < alive){
-    //     s_x[tid] += s_x[tid + alive];
-    //   }
-    // }
+   
     // Perform the reduction in shared memory
     for (unsigned int s = 1; s < blockDim.x; s *= 2) {
         if (tid % (2 * s) == 0) {
@@ -56,7 +41,7 @@ int main(int argc, char * argv[]){
 
     // Next largest multiple of blockSize
     int numBlocks = (N + blockSize - 1) / blockSize;
-
+    numBlocks /= 2;
     printf("Reduction with N = %d, blockSize = %d, numBlocks = %d\n", N, blockSize, numBlocks);
 
     float * x = new float[N];
@@ -65,8 +50,6 @@ int main(int argc, char * argv[]){
     for (int i = 0; i < N; ++i){
         x[i] = i + 1.f;
     }
-
-
 
     // allocate memory and copy to the GPU
     float * d_x;
@@ -80,7 +63,7 @@ int main(int argc, char * argv[]){
     cudaMemcpy(d_x, x, size_x, cudaMemcpyHostToDevice);
     cudaMemcpy(d_x_reduced, x_reduced, size_x_reduced, cudaMemcpyHostToDevice);
 
-    partial_reduction <<< numBlocks, blockSize/2 >>> (N, d_x_reduced, d_x);
+    partial_reduction <<< numBlocks, blockSize >>> (N, d_x_reduced, d_x);
 
     // copy memory back to the CPU
     cudaMemcpy(x_reduced, d_x_reduced, size_x_reduced, cudaMemcpyDeviceToHost);

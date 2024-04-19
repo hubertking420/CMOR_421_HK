@@ -78,7 +78,7 @@ int main(int argc, char * argv[]){
   cudaMemcpy(d_x, x, size_x, cudaMemcpyHostToDevice);
   cudaMemcpy(d_y, y, size_y, cudaMemcpyHostToDevice);
 
-  stencil_shared <<< numBlocks, blockSize+2 >>> (d_x, d_y, N);
+  stencil_shared <<< numBlocks, blockSize >>> (d_x, d_y, N);
 
   // copy memory back to the CPU
   cudaMemcpy(y, d_y, size_y, cudaMemcpyDeviceToHost);
