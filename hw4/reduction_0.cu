@@ -68,6 +68,10 @@ int main(int argc, char * argv[]){
     cudaMemcpy(d_x_reduced, x_reduced, size_x_reduced, cudaMemcpyHostToDevice);
 
     partial_reduction <<< numBlocks, blockSize >>> (N, d_x_reduced, d_x);
+    cudaError_t code = cudaGetLastError();
+    if (code != cudaSuccess){
+        printf("GPUassert: %s\n", cudaGetErrorString(code));
+    }
 
     // copy memory back to the CPU
     cudaMemcpy(x_reduced, d_x_reduced, size_x_reduced, cudaMemcpyDeviceToHost);

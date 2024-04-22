@@ -54,7 +54,12 @@ int main(int argc, char * argv[]){
   cudaMemcpy(d_x, x, size_x, cudaMemcpyHostToDevice);
   cudaMemcpy(d_y, y, size_y, cudaMemcpyHostToDevice);
 
+  // run
   stencil_global <<< numBlocks, blockSize >>> (d_x, d_y, N);
+  cudaError_t code = cudaGetLastError();
+  if (code != cudaSuccess){
+    printf("GPUassert: %s\n", cudaGetErrorString(code));
+  }
 
   // copy memory back to the CPU
   cudaMemcpy(y, d_y, size_y, cudaMemcpyDeviceToHost);
