@@ -30,37 +30,9 @@ __global__ void partial_reduction(const int N, float *x_reduced, const float *x)
     if (tid == 0){
         x_reduced[blockIdx.x] = s_x[0];
     }
-}
-
-// __global__ void partial_reduction(const int N, float *x_reduced, const float *x){
-//     __shared__ float s_x[BLOCKSIZE];
-//     const int i = blockDim.x * blockIdx.x + threadIdx.x;
-//     const int tid = threadIdx.x;
-  
-//     // coalesced reads in
-//     s_x[tid] = 0.f;
-//     if (i < N){  
-//         s_x[tid] = x[i]+x[i+blockDim.x];
-//     }
-
-//     __syncthreads(); // Ensure all threads have written their sums to shared memory
-   
-//     // Perform the reduction in shared memory
-//     for (unsigned int s = 1; s < blockDim.x; s *= 2) {
-//         if (tid % (2 * s) == 0) {
-//             s_x[tid] += s_x[tid + s];
-//         }
-//         __syncthreads();
-//     }
-
-//     // Write the result for this block to global memory
-//     if (tid == 0){
-//         x_reduced[blockIdx.x] = s_x[0];
-//     }
-// }
-    
+}   
 int main(int argc, char * argv[]){
-    int N = 4096;
+    int N = 419430;
     if (argc > 1){
         N = atoi(argv[1]);
     }
