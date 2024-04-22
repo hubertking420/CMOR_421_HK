@@ -16,14 +16,14 @@ if [ 0 -eq 1 ]; then
   srun stencil_2
 fi
 
-if [ 0 -eq 0 ]; then
+if [ 0 -eq 1 ]; then
   srun reduction_0
 fi
 
-if [ 0 -eq 0 ]; then
+if [ 0 -eq 1 ]; then
   srun reduction_1
 fi
 
-if [ 1 -eq 0 ]; then
+if [ 1 -eq 1 ]; then
   srun reduction_2
 fi 
