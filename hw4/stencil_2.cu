@@ -8,7 +8,6 @@ __global__ void stencil_shared(const float *x, float *y, int N){
   const int i = blockDim.x * blockIdx.x + threadIdx.x;
   const int tid = threadIdx.x; 
   const int local_index = tid+1; // shift indices over to leave room for left halo
-
   // Load interior data
   s_x[local_index] = 0.f;
   if(i<N){
@@ -16,12 +15,12 @@ __global__ void stencil_shared(const float *x, float *y, int N){
   }
 
   // Load left halo element if it exists
-  if(tid==0 && blockIdx.x>0){
+  if(tid==0 && i>0){
       s_x[0] = x[i-1];
   }
 
   // Load right halo element if it exists
-  if(tid==blockDim.x-1 && blockIdx.x<blockDim.x-1){
+  if(tid==blockDim.x-1 && i<N-1){
       s_x[blockDim.x+1] = x[i+1];
   }
   
@@ -35,7 +34,6 @@ __global__ void stencil_shared(const float *x, float *y, int N){
   }
 
   // Overall boundary elements
-  __syncthreads();
   if(i==0){
     y[i] = y[i+1];
   }
