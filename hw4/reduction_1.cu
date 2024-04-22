@@ -5,9 +5,7 @@
 #define BLOCKSIZE 128
 
 __global__ void partial_reduction(const int N, float *x_reduced, const float *x){
-  
     __shared__ float s_x[BLOCKSIZE];
-
     const int i = blockDim.x * blockIdx.x + threadIdx.x;
     const int tid = threadIdx.x;
   
