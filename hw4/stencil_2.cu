@@ -30,7 +30,7 @@ __global__ void stencil_shared(const float *x, float *y, int N){
   // Interior elements
   y[i]=0.f;
   if(i>0 && i<N-1){
-    y[i] = 2*s_x[i]-s_x[i-1]-s_x[i+1];
+    y[i] = 2*s_x[local_index]-s_x[local_index-1]-s_x[local_index+1];
   }
 
   // Overall boundary elements
