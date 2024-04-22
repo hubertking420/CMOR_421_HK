@@ -36,10 +36,10 @@ __global__ void stencil_shared(const float *x, float *y, int N){
 
   // Overall boundary elements
   __syncthreads();
-  if(i == 0){
+  if(i==0){
     y[i] = y[i+1];
   }
-  if(i == N){
+  if(i==N-1){
     y[i] = y[i-1];
   }
 }
