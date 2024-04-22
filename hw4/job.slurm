@@ -8,22 +8,8 @@
 #SBATCH --time=04:00:00
 echo "My job ran on:"
 echo $SLURM_NODELIST
-if [ 0 -eq 1 ]; then
-  srun stencil_1
-fi
-
-if [ 0 -eq 1 ]; then
-  srun stencil_2
-fi
-
-if [ 0 -eq 1 ]; then
-  srun reduction_0
-fi
-
-if [ 0 -eq 1 ]; then
-  srun reduction_1
-fi
-
-if [ 1 -eq 1 ]; then
-  srun reduction_2
-fi 
+srun stencil_1
+srun stencil_2
+srun reduction_0
+srun reduction_1
+srun reduction_2
