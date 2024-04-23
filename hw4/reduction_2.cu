@@ -7,19 +7,19 @@ __global__ void partial_reduction(const int N, float *x_reduced, const float *x)
     __shared__ float s_x[BLOCKSIZE];
     const int tid = threadIdx.x;
     const int i = blockDim.x * blockIdx.x + tid; // Index in the first half
-    const int j = N - 1 - tid - blockDim.x * blockIdx.x; // Index in the second half
+    const int j = N-1-tid-blockDim.x*blockIdx.x; // Index in the second half
 
-    // Load data into shared memory, ensuring we don't read out of bounds
+    // Load data into shared memory
     s_x[tid] = (i < N) ? x[i] : 0.f;
-    if (j >= 0 && j < N) {
+    if (j>=0 && j<N) {
         s_x[tid] += x[j];
     }
 
-    __syncthreads(); // Ensure all threads have written their sums to shared memory
+    __syncthreads();
 
     // Perform the reduction in shared memory
     for (unsigned int s = 1; s < blockDim.x; s *= 2) {
-        int index = 2 * s * tid;
+        int index = 2*s*tid;
         if (index < blockDim.x) {
             s_x[index] += s_x[index + s];
         }
