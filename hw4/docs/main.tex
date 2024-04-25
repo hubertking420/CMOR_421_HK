@@ -17,7 +17,7 @@
 \maketitle
 
 \section*{Problem 1: Reduction}
-We optimize reduction code with vector of size $2^{22}=4194304$ and $128$ threads per block. 
+We optimize reduction code with vector of size $n = 2^{22}=4194304$ and $128$ threads per block. 
 
 We implement Version 2 which has each thread sum two elements (rather than one) from global memory prior to storing them in shared memory. Version 1 has a runtime of approximately 9.28 milliseconds while Version 2 has a runtime of around 5.48 milliseconds, indicating that Version 2 is just under two times faster.
 
@@ -76,7 +76,7 @@ Performance of Versions 0, 1, and 2 are visualized in the following roofline plo
 
 
 \section*{Problem 2: Stencil}
-We consider the following iteration applied to vector $x$ with $n$ elements:
+We consider the following iteration applied to vector $x$ with $n = 2^{22}=4194304$ elements:
 \[
 y_i=\alpha(-x_{i+1}+2x_i-x_{i-1})
 \]
